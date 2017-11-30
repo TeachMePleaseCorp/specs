@@ -4,3 +4,6 @@
 [submodule "monetary-policy"]
 	path = monetary-policy
 	url = https://git.overleaf.com/12088962zyrnvghhngpt
+[submodule "requirements"]
+	path = requirements
+	url = https://git.overleaf.com/12499516hkwxvbybjtvk

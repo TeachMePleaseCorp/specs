@@ -5,5 +5,5 @@
 	path = src/monetary-policy
 	url = https://git.overleaf.com/12088962zyrnvghhngpt
 [submodule "requirements"]
-	path = requirements
+	path = src/requirements
 	url = https://git.overleaf.com/12499516hkwxvbybjtvk

@@ -2,7 +2,7 @@
 	path = src/yellowpaper
 	url = https://git.overleaf.com/12075858gmwysfccfxts
 [submodule "monetary-policy"]
-	path = monetary-policy
+	path = src/monetary-policy
 	url = https://git.overleaf.com/12088962zyrnvghhngpt
 [submodule "requirements"]
 	path = requirements

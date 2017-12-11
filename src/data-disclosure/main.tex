@@ -132,7 +132,7 @@ To decide on whether the communication is over, the protocol utilizes some timeo
   4 & & \\ \hline
   5 & \tParty{B}, \tParty{S} get their money back & \tParty{B}~received the encrypted data, but \tParty{S}~wasn't able to share the key $k$ for it \\ \hline
   6 & \tParty{S} gets all the money & \tParty{S} correctly shared data to \tParty{B} \\ \hline
-  Protocol finishes & \tParty{B} gets all the money & \tParty{B} proofs \tParty{S} cheated, \tParty{S} loses all her money \\ \hline
+  Protocol finishes & Either \tParty{B} or \tParty{S} get all the money & The dispute situation. In case \tParty{B} proofs \tParty{S} cheated, \tParty{S} loses all her money. Otherwise, \tParty{B} loses her money for false accusation. \\ \hline
 \end{longtabu}
 
 

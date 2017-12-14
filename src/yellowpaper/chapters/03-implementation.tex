@@ -146,9 +146,9 @@ Let $\rho(e, P)$ be the function that substitutes the element $e$ in path $P$ an
 \begin{enumerate}
 \item Query the public chain to find the block $H$ and obtain the Merkle root of the transactions: $\Root(M_H)$.
 \item Check whether $\rho(T_{pub}, P_{H}) = \Root(M_H)$.
-\item Check that the public transaction $T_{pub}$ was signed with the Educator's public key $PK_E$.
+\item Check that the public transaction $T_{pub}$ was signed with the Educator's public key $\PubKey{E}$.
 \item From the public transaction $T_{pub}$ obtain the root of the AVL+ tree: $\Root(A)$.
-\item Use $PK_S$, $a_j$ and score to build a private transaction $T_{priv}$.
+\item Use $\PubKey{S}$, $a_j$ and score to build a private transaction $T_{priv}$.
 \item Compute $R_{M} = \rho(T_{priv}, P_{M})$.
 \item Check that $\rho(R_{M}, P_{A}) = \Root(A)$.
 \end{enumerate}

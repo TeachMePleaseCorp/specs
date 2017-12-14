@@ -1,3 +1,4 @@
+
 \section{Implementation choices}
 In this section we describe the proposed architecture in more detail. We present the excerpt on the internal structure of both public and private chains and the reasoning behind these choices.
 
@@ -7,7 +8,7 @@ We will start from analyzing this process and determining the main issues that a
 
 \subsection{Anonymity and certification}
 \label{sec:cert}
-The permissionless nature of our public chain leads to the ability for malevolent students to craft educational institutes in order to get the scores for the courses they did not attend. Moreover, the knowledge students actually get by completing the course and conditions upon which the course is considered completed highly vary between the educational institutes. 
+The permissionless nature of our public chain leads to the ability for malevolent students to craft educational institutes in order to get the scores for the courses they did not attend. Moreover, the knowledge students actually get by completing the course and conditions upon which the course is considered completed highly vary between the educational institutes.
 
 These issues currently can not be solved solely on the protocol level: they require the external source of information to determine the physical existence and the reputation of an Educator. Although we leave the public chain open for the Educators to submit their private block headers, we propose to add a separate layer of reputation and trust on top of the protocol.
 
@@ -79,12 +80,12 @@ During the educational process the Educators emit atomic \textit{private transac
 
 Let us denote an $i$-th transaction belonging to a certain activity type $a_j$ as $T_{a_j}^i$. The Educators group the transactions that occured during the current block time slot according to the activity type, and construct Merkle trees \cite{merkle1989certified} for these journal modifications:
 \begin{equation}
-M_{a_j} = \textrm{MerkleTree}(T_{a_j}^i)
+M_{a_j} = \MerkleTree(T_{a_j}^i)
 \end{equation}
 
 The Educator's private block body contains a dictionary of key-value pairs, where each key is the leaf in the activity type graph $a_j$, and the values are the Merkle roots of all the transactions that occurred in this leaf in the current block. Thus, the private block body is a mapping:
 \begin{equation}
-a_j \rightarrow \textrm{root}(M_{a_j})
+a_j \rightarrow \Root(M_{a_j})
 \end{equation}
 
 In order to make this mapping easily verifiable, we use a structure called the \textit{authenticated AVL+ tree} introduced in \cite{reyzin2016improving}. This structure is the state-of-the-art research that enables for faster verification of the mapping and allows us to never disclose it: the Witnesses would not have to store the whole blockchain like Bitcoin or Ethereum nodes do. Rather, they would just have to check the private block headers in order to confirm that none of the private blocks were tampered with.
@@ -130,49 +131,89 @@ One of the main goals of the Disciplina platform is to provide a way for the Stu
 \label{fig:cv}
 \end{figure}
 
-In order to prove that some transaction actually occurred in some private block of the concrete Educator, the student has to provide the cryptographic proofs along with the actual data. The cryptographic proof of the inclusion of an element in an authenticated data structure is generally a path of hashes. Let us denote the path of the element $e$ in the data structure $D$ as $\mathtt{path}(e, D)$. Thus, the Student has to  provide the following data:
+In order to prove that some transaction actually occurred in some private block of the concrete Educator, the student has to provide the cryptographic proofs along with the actual data. The cryptographic proof of the inclusion of an element in an authenticated data structure is generally a path of hashes. Let us denote the path of the element $e$ in the data structure $D$ as $\Path(e, D)$. Thus, the Student has to  provide the following data:
 \begin{itemize}
-  \item The Student's and the Educator's public keys $PK_S$ and $PK_E$.
+  \item The Student's and the Educator's public keys $\PubKey{S}$ and $\PubKey{E}$.
   \item The course $a_i$ and the a private transaction $T_{priv}$ with the score.
-  \item The Merkle path of the transaction in the journal: $P_{M} = \mathtt{path}(T_{priv}, M_{a_i})$
-  \item The AVL+ path to prove that the journal was included in a private block's AVL+ tree $A$: $P_{A} = \mathtt{path}(\mathtt{root}(M_{a_i}), A)$
-  \item The public block number $H$ and the Merkle path of the transaction $T_{pub}$ that pushed the private block into the public chain: $P_{H} = \mathtt{path}(T_{pub}, M_H)$, where $M_H$ is a Merkle tree of the transactions in the block $H$.
+  \item The Merkle path of the transaction in the journal: $P_{M} = \Path(T_{priv}, M_{a_i})$
+  \item The AVL+ path to prove that the journal was included in a private block's AVL+ tree $A$: $P_{A} = \Path(\Root(M_{a_i}), A)$
+  \item The public block number $H$ and the Merkle path of the transaction $T_{pub}$ that pushed the private block into the public chain: $P_{H} = \Path(T_{pub}, M_H)$, where $M_H$ is a Merkle tree of the transactions in the block $H$.
 \end{itemize}
 
 Having this data one can prove the occurrence of a certain transaction in one of the Educator's private blocks without the need to request any data from the Educator during the validation process. Thus, any party can check the validity of the Student's CV for free if the Student wishes to disclose it.
 
 Let $\rho(e, P)$ be the function that substitutes the element $e$ in path $P$ and computes the root hash of the authenticated data structure. Then the validation process is as follows:
 \begin{enumerate}
-\item Query the public chain to find the block $H$ and obtain the Merkle root of the transactions: $\mathtt{root}(M_H)$.
-\item Check whether $\rho(T_{pub}, P_{H}) = \mathtt{root}(M_H)$.
+\item Query the public chain to find the block $H$ and obtain the Merkle root of the transactions: $\Root(M_H)$.
+\item Check whether $\rho(T_{pub}, P_{H}) = \Root(M_H)$.
 \item Check that the public transaction $T_{pub}$ was signed with the Educator's public key $PK_E$.
-\item From the public transaction $T_{pub}$ obtain the root of the AVL+ tree: $\mathtt{root}(A)$.
+\item From the public transaction $T_{pub}$ obtain the root of the AVL+ tree: $\Root(A)$.
 \item Use $PK_S$, $a_j$ and score to build a private transaction $T_{priv}$.
 \item Compute $R_{M} = \rho(T_{priv}, P_{M})$.
-\item Check that $\rho(R_{M}, P_{A}) = \mathtt{root}(A)$.
+\item Check that $\rho(R_{M}, P_{A}) = \Root(A)$.
 \end{enumerate}
 
-These validation steps can prove that an Educator with a public key $PK_E$ issued a transaction $T_{priv}$ in one of its private blocks. One can attribute the $PK_E$ to some real-world educational institute by checking the Educator's certificate as described in section \ref{sec:cert}.
+These validation steps can prove that an Educator with a public key $\PubKey{E}$ issued a transaction $T_{priv}$ in one of its private blocks. One can attribute the $\PubKey{E}$ to some real-world educational institute by checking the Educator's certificate as described in section \ref{sec:cert}.
 
 \subsection{Data Disclosure}
 \label{sec:DataDisclosure}
 
-The high-level data disclosure process is as follows:
+Suppose the seller~\tParty{S} has some data~$D$. Before the deal \tParty{S} ought to perform some preparation steps. \tParty{S} should:
 \begin{enumerate}
-\item Archivists keep records on all the Educators in the system along with the courses they teach.
-\item The Recruiter sends data disclosure request to one of the Archivists.
-\item The Archivist selects the relevant Educators and forwards the request.
-\item The Educators determines the sizes of the data they are going to disclose.
-\item Based on the size of the data, the Archivist informs the Recruiter about the cost of the request.
-\item The Recruiter pays the fees.
-\item The Educators send the data to the Archivist.
-\item The Archivist checks the blocks received from the Educator for the validity using the data from the Witnesses' chain, and forward this data to the Recruiter.
-\item The fee is distributed between the affected parties.
+\item Divide~$D$ into $N$ chunks of size no more than 1~KiB:
+
+\begin{equation}
+D = \Concat_{i=1}^N d_i, \quad \SizeOf(d_i) \leq 1~\mathrm{KiB}
+\end{equation}
+
+\item Generate a symmetric key $k$
+\item Encrypt each~$d_i$ with $k$ and make an array of encrypted chunks:
+\begin{equation}
+\Lock = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
+\end{equation}
+
+\item Compute a Merkle root of the encrypted chunks:
+\begin{equation}
+R = \Root(\MerkleTree(\Lock))
+\end{equation}
+
 \end{enumerate}
+
+On this stage $R$ is a public knowledge, while $k, \Lock$ and all of the $d_i$ are kept hidden.
+
+The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
+
+\begin{enumerate}
+\item The buyer generates a new keypair ($\PubKey{B},\ \SecretKey{B}$), creates the contract and sends the money to the contract address. Along with the money, \tParty{B} sends the public key $\PubKey{B}$ of the newly generated keypair.
+\item If \tParty{S} agrees to proceed, she also sends a predefined amount of money to the contract address.
+\item \tParty{S} transfers the encrypted data chunks $\Lock$ to the buyer. \tParty{B} computes the Merkle root $R'$ of the received data $\Lock'$:
+\begin{equation}
+R' = \Root(\MerkleTree(\Lock'))
+\end{equation}
+\item \tParty{B} makes a transaction with a receipt $\Sign_\Party{B}(R')$ to the contract address.
+\item \tParty{S} sends $\Sign_\Party{S}(\{\Encrypt_\Party{B}(k),\ R\})$ to the contract. The contract accepts it iff~$R=R'$ (this implies that~$\Lock=\Lock'$).
+\item \tParty{B} decyphers and checks the received data. In case some data chunk $e_i \in \Lock$ is invalid, \tParty{B}~sends a transaction with~$\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock))\}$ to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$.  She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{S} of cheating.
+\end{enumerate}
+
+The on-chain communications of the parties (steps 2, 4, 5, 6) are bounded by a time frame $\tau$. In order for the transaction to be valid, the time $\Delta t$ passed since the previous on-chain step has to be less than or equal to $\tau$. In case $\Delta t > \tau$ the communication between the parties is considered over, and one of the protocol exit points is automatically triggered.
+
+\tabulinesep=3pt
+\begin{longtabu} to \textwidth {| X[3, c, m] | X[5, l, m] | X[7, l, m] |}
+  \caption{Data disclosure protocol exit points} \\
+  \hline
+  \textbf{$\Delta t > \tau$ at step} & \textbf{Consequence} & \textbf{Interpretation}\\ \hline
+  \endhead
+  2 & \multirow{3}{=}{\tParty{B}, \tParty{S} get their money back} & \multirow{3}{=}{\tParty{S}~wasn't able to transfer the data to~\tParty{B}.} \\ \cline{1-1}
+  3 & & \\ \cline{1-1}
+  4 & & \\ \hline
+  5 & \tParty{B}, \tParty{S} get their money back & \tParty{B}~received the encrypted data, but \tParty{S}~wasn't able to share the key $k$ for it \\ \hline
+  6 & \tParty{S} gets all the money & \tParty{S} correctly shared data to \tParty{B} \\ \hline
+  Protocol finishes & Either \tParty{B} or \tParty{S} get all the money & The dispute situation. In case \tParty{B} proofs \tParty{S} cheated, \tParty{S} loses all her money. Otherwise, \tParty{B} loses her money for false accusation. \\ \hline
+\end{longtabu}
 
 The process of data disclosure involves direct communication between a particular Educator willing to disclose a part of data and a Recruiter, willing to pay for this data. To mitigate the risk of secondary market arousal, one should ensure that the most part of the data remains in the private blocks. Thus we reduce the size of the Educators' response by incentivizing the Recruiters to make as accurate requests as possible. We propose the following formula to determine the cost of the request:
 \begin{equation}
-\mathrm{Cost}(request) \sim \mathrm{exp}(N_{actions}(response))
+\operatorname{Cost}(request) \sim \operatorname{exp}(N_{actions}(response))
 \end{equation}
 
 The value received from the Recruiter is then distributed between the Archivists, the Educators that disclosed the data, and the affected students.

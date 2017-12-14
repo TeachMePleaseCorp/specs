@@ -13,8 +13,12 @@
 \usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage{csquotes}
+\usepackage{longtable,tabu}
+\usepackage{multirow}
+\usepackage{fontawesome}
 \usepackage[blocks]{authblk}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage{footmisc}
 \graphicspath{{images/}}
 
 \title{Disciplina: Blockchain for Education}
@@ -30,6 +34,21 @@ Version 0.4\\%
 \today
 }
 
+\newcommand{\Lock}{{D_\text{\faLock}}}
+\newcommand{\Sign}{\mathtt{Sig}}
+\newcommand{\Encrypt}{\mathtt{E}}
+\newcommand{\Hash}{\mathtt{H}}
+\newcommand{\MerkleTree}{\mathtt{mtree}}
+\newcommand{\Root}{\mathtt{root}}
+\newcommand{\Path}{\mathtt{path}}
+\newcommand{\Party}[1]{\mathbf{#1}}
+\newcommand{\tParty}[1]{$\Party{#1}$}
+\newcommand{\Key}[1]{#1}
+\newcommand{\PubKey}[1]{pk_{\Party{#1}}}
+\newcommand{\SecretKey}[1]{sk_{\Party{#1}}}
+\newcommand{\Concat}{\bigoplus}
+\newcommand{\SizeOf}{\mathtt{sizeof}}
+
 \begin{document}
 \maketitle
 
@@ -38,11 +57,12 @@ Version 0.4\\%
 \input{chapters/02-architecture}
 \input{chapters/03-implementation}
 \input{chapters/04-conclusion}
+\input{chapters/0A-notations}
 
 %\bibliographystyle{plain}
 %\bibliographystyle{alpha}
 %\bibliographystyle{unsrt}
 \bibliographystyle{abbrv}
-\bibliography{references.bib}
+\bibliography{references}
 
 \end{document}

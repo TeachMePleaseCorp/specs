@@ -9,7 +9,7 @@ The structure of the private block is shown in Figure \ref{fig:privateblocks}. T
 \label{fig:privateblocks}
 \end{figure}
 
-During the educational process the Educators emit atomic \textit{private transactions}. These tansactions represent the modifications to the journal of academic achievements in a certain activity type (thus, making a transaction means appending the data to the journal of a particular course). The transactions can be of the following types:
+During the educational process the Educators emit atomic \textit{private transactions}. These tansactions represent the modifications to the journal of academic achievements (thus, making a transaction means appending the data to the journa). The transactions can be of the following types:
 \begin{itemize}
 \item student enrolls in a course;
 \item student gets an assignment;
@@ -18,18 +18,13 @@ During the educational process the Educators emit atomic \textit{private transac
 \item student gets a final score for the course.
 \end{itemize}
 
-Let us denote an $i$-th transaction belonging to a certain activity type $a_j$ as $T_{a_j}^i$. The Educators group the transactions that occured during the current block time slot according to the activity type, and construct Merkle trees \cite{merkle1989certified} for these journal modifications:
+Let us denote an $i$-th transaction in a block as $T_{priv}^i$. The Educators group the transactions that occured during the current block time slot, and construct a Merkle tree \cite{merkle1989certified} for these journal modifications:
 \begin{equation}
-M_{a_j} = \MerkleTree(T_{a_j}^i)
+M_{priv} = \MerkleTree(T_{priv}^i)
 \end{equation}
 
-The Educator's private block body contains a dictionary of key-value pairs, where each key is the leaf in the activity type graph $a_j$, and the values are the Merkle roots of all the transactions that occurred in this leaf in the current block. Thus, the private block body is a mapping:
-\begin{equation}
-a_j \rightarrow \Root(M_{a_j})
-\end{equation}
+The Educator's private block body comprises an ordered set of Merkle-authenticated transactions. These transactions are indexed so that the Educator can quickly find a particular transaction that satisfies some predicate.
 
-In order to make this mapping easily verifiable, we use a structure called the \textit{authenticated AVL+ tree} introduced in \cite{reyzin2016improving}. This structure is based on state-of-the-art research that enables for faster verification of the mapping and allows us to never disclose it: the Witnesses would not have to store the whole blockchain like Bitcoin or Ethereum nodes do. Rather, they would just have to check the private block headers in order to confirm that none of the private blocks were tampered with.
-
-The private block header consists of the AVL+ proof along with the previous block hash and the information on the Activity Type Graph modifications (ATG delta). The \textit{ATG delta} part allows the Educators to inform the Witnesses and the Archivists of the modifications to the courses they teach.
+The private block header consists of the transactions Merkle root along with the previous block hash and the information on the Activity Type Graph modifications (ATG delta). The \textit{ATG delta} part allows the Educators to inform the Witnesses and the Archivists of the modifications to the courses they teach.
 
 After the end of the block time slot, an Educator signs the block header and submits it to the Witnesses so that the private transactions can be confirmed by the public chain. Thus, the private blocks form a publicly verifiable chain of events, grouped according to the activity type.

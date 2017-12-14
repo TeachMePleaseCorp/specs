@@ -1,0 +1,62 @@
+\subsection{Data Disclosure}
+\label{sec:DataDisclosure}
+
+Suppose an Educator~\tParty{E} has some data~$D$. Before the deal \tParty{E} ought to perform some preparation steps. \tParty{E} should:
+\begin{enumerate}
+\item Divide~$D$ into $N$ chunks of size no more than 1~KiB:
+
+\begin{equation}
+D = \Concat_{i=1}^N d_i, \quad \SizeOf(d_i) \leq 1~\mathrm{KiB}
+\end{equation}
+
+\item Generate a symmetric key $k$
+\item Encrypt each~$d_i$ with $k$ and make an array of encrypted chunks:
+\begin{equation}
+\Lock = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
+\end{equation}
+
+\item Compute a Merkle root of the encrypted chunks:
+\begin{equation}
+R = \Root(\MerkleTree(\Lock))
+\end{equation}
+
+\end{enumerate}
+
+On this stage $R$ is a public knowledge, while $k, \Lock$ and all of the $d_i$ are kept hidden.
+
+The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
+
+\begin{enumerate}
+\item The buyer generates a new keypair ($\PubKey{B},\ \SecretKey{B}$), creates the contract and sends the money to the contract address. Along with the money, \tParty{B} sends the public key $\PubKey{B}$ of the newly generated keypair.
+\item If \tParty{E} agrees to proceed, she also sends a predefined amount of money to the contract address.
+\item \tParty{E} transfers the encrypted data chunks $\Lock$ to the buyer. \tParty{B} computes the Merkle root $R'$ of the received data $\Lock'$:
+\begin{equation}
+R' = \Root(\MerkleTree(\Lock'))
+\end{equation}
+\item \tParty{B} makes a transaction with a receipt $\Sign_\Party{B}(R')$ to the contract address.
+\item \tParty{E} sends $\Sign_\Party{E}(\{\Encrypt_\Party{B}(k),\ R\})$ to the contract. The contract accepts it iff~$R=R'$ (this implies that~$\Lock=\Lock'$).
+\item \tParty{B} decyphers and checks the received data. In case some data chunk $e_i \in \Lock$ is invalid, \tParty{B}~sends a transaction with~$\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock))\}$ to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$.  She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
+\end{enumerate}
+
+The on-chain communications of the parties (steps 2, 4, 5, 6) are bounded by a time frame $\tau$. In order for the transaction to be valid, the time $\Delta t$ passed since the previous on-chain step has to be less than or equal to $\tau$. In case $\Delta t > \tau$ the communication between the parties is considered over, and one of the protocol exit points is automatically triggered.
+
+\tabulinesep=3pt
+\begin{longtabu} to \textwidth {| X[3, c, m] | X[5, l, m] | X[7, l, m] |}
+  \caption{Data disclosure protocol exit points} \\
+  \hline
+  \textbf{$\Delta t > \tau$ at step} & \textbf{Consequence} & \textbf{Interpretation}\\ \hline
+  \endhead
+  2 & \multirow{3}{=}{\tParty{B}, \tParty{E} get their money back} & \multirow{3}{=}{\tParty{E}~wasn't able to transfer the data to~\tParty{B}.} \\ \cline{1-1}
+  3 & & \\ \cline{1-1}
+  4 & & \\ \hline
+  5 & \tParty{B}, \tParty{E} get their money back & \tParty{B}~received the encrypted data, but \tParty{E}~wasn't able to share the key $k$ for it \\ \hline
+  6 & \tParty{E} gets all the money & \tParty{E} correctly shared data to \tParty{B} \\ \hline
+  Protocol finishes & Either \tParty{B} or \tParty{E} get all the money & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses all her money. Otherwise, \tParty{B} loses her money for false accusation. \\ \hline
+\end{longtabu}
+
+The process of data disclosure involves direct communication between a particular Educator, willing to disclose a part of the data, and a Recruiter, willing to pay for this data. To mitigate the risk of secondary market creation, one should ensure that the majority of the data remains in the private blocks. Thus we reduce the size of the Educators' response by incentivizing the Recruiters to make as accurate requests as possible. We propose the following formula to determine the cost of the request:
+\begin{equation}
+\operatorname{Cost}(request) \sim \operatorname{exp}(N_{actions}(response))
+\end{equation}
+
+The value received from the Recruiter is then distributed between the Archivists, the Educators that disclosed the data, and the affected students.

@@ -26,7 +26,7 @@ R = \Root(\MerkleTree(\Lock{D}))
 s = \SizeOf(\Lock{D})
 \end{equation}
 
-\item Determine the cost of the data she is going to reveal ($\alpha$ is some constant coefficient):
+\item Calculate the cost of the data ($\alpha$ is some constant coefficient):
 \begin{equation}
 C_D = \alpha \operatorname{exp}(s)
 \end{equation}
@@ -69,6 +69,6 @@ The on-chain communications of the parties (steps 2, 4, 5, 6) are bounded by a t
     $s' \neq s$ & 4 & \\ \hline
     $\Delta t > \tau$ & 5 & \tParty{B}, \tParty{E} get their money back because \tParty{B}~has received the encrypted data, but \tParty{E}~nas not been able to share the key $k$ for it \\ \hline
     $\Delta t > \tau$ & 6 & \tParty{E} gets $C_E$ and $C_D$: \tParty{E} correctly shared data to \tParty{B} \\ \hline
-    \multicolumn{2}{|c|}{Protocol finishes} & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses her security deposit. Otherwise, \tParty{E} receives both $C_E$ and $C_D$. \\ \hline
+    \multicolumn{2}{|c|}{Protocol finishes} & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses her security deposit $C_E$. Otherwise, \tParty{E} receives both $C_E$ and $C_D$. \\ \hline
   \end{longtabu}
 \end{table}

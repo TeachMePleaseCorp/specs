@@ -1,5 +1,5 @@
 \subsection{Fair CV}
-One of the main goals of the Disciplina platform is to provide a way for the Students to easily prove their educational records. We propose to duplicate the records in the Student's \textit{digital CV.} This CV contains all the records that the parties have generated during the Student's educational process along with the validity proofs of that data (see Figure \ref{fig:cv}).
+One of the main goals of the Disciplina platform is to provide a way for the Students to easily prove their educational records. We propose to duplicate the records in the Student's \textit{digital CV.} This CV contains all the records that the parties have generated during the Student's educational process along with the validity proofs of that data (see Figure~\ref{fig:cv}).
 
 \begin{figure}[ht]
 \centering
@@ -8,7 +8,7 @@ One of the main goals of the Disciplina platform is to provide a way for the Stu
 \label{fig:cv}
 \end{figure}
 
-In order to prove that some transaction actually occurred in some private block of the concrete Educator, the student has to provide the cryptographic proofs along with the actual data. The cryptographic proof of the inclusion of an element in an authenticated data structure is generally a path of hashes. Let us denote the path of the element $e$ in some authenticated data structure $X$ as $\Path(e, X)$. Thus, the Student has to  provide the following data:
+In order to prove that some transaction actually occurred in some private block of the concrete Educator, the student has to provide the cryptographic proofs along with the actual data. The cryptographic proof of the inclusion of an element in an authenticated data structure is generally a path of hashes. Let us denote the path of the element~$e$ in some authenticated data structure~$X$ as~$\Path(e, X)$. Thus, the Student has to  provide the following data:
 \begin{itemize}
   \item The Student's and the Educator's public keys $\PubKey{S}$ and $\PubKey{E}$.
   \item The course $a_i$ and the a private transaction $T_{priv}$ with the score.
@@ -27,4 +27,4 @@ Let $\rho(e, P)$ be the function that substitutes the element $e$ in path $P$ an
 \item Check that $\rho(T_{priv}, P_{priv}) = \Root(M_{priv})$.
 \end{enumerate}
 
-These validation steps can prove that an Educator with a public key $\PubKey{E}$ issued a transaction $T_{priv}$ in one of its private blocks. One can attribute the $\PubKey{E}$ to a particular real-world educational institution by checking the Educator's certificate as described in section \ref{sec:cert}.
+These validation steps can prove that an Educator with a public key $\PubKey{E}$ issued a transaction $T_{priv}$ in one of its private blocks. One can attribute the $\PubKey{E}$ to a particular real-world educational institution by checking the Educator's certificate as described in Section~\ref{sec:cert}.

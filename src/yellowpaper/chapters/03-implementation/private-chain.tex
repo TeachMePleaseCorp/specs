@@ -47,4 +47,6 @@ The Educator's private block body comprises an ordered set of Merkle-authenticat
 
 The private block header consists of the transactions Merkle root along with the previous block hash and the information on the Activity Type Graph modifications (ATG delta). The \textit{ATG delta} part allows the Educators to inform the Witnesses and the Archivists of the modifications to the courses they teach.
 
-After the end of the block time slot, an Educator signs the block header and submits it to the Witnesses so that the private transactions can be confirmed by the public chain. Thus, the private blocks form a publicly verifiable chain of events.
+An Educator collects private transactions into the blocks with no more than $K$ transactions per each block. After that, an Educator submits signed block header to the Witnesses so that private transactions can be confirmed by the public chain. Thus, the private blocks form a publicly verifiable chain of events.
+
+To incentivize Witnesses to include private block headers into the public chain, an Educator should pay a fixed amount of coins per each private block. We suppose that personal tutors will cooperate via some platform which will maintain the private chain, and will submit private block headers to the public ledger.

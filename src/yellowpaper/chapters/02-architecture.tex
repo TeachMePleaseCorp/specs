@@ -5,7 +5,7 @@ Due to the nature of the platform, it has to operate on sensitive data, such as 
 
 \begin{figure}[ht]
 \centering
-\includegraphics[width=0.8\textwidth]{entities}
+\includegraphics[width=0.8\textwidth]{entities-internal-storage}
 \caption{Key entities of the Disciplina platform}
 \label{fig:entities}
 \end{figure}
@@ -14,12 +14,11 @@ The private layer is maintained by each Educator independently of others. Educat
 
 Students get access to the platform through web and mobile applications. Using the applications they choose Educators, enroll in courses, get assignments and submit solutions. The scores and the criteria of whether the Student has finished the course successfully are determined by the Educator. The education process from the platform’s perspective is as follows:
 \begin{enumerate}
-\item A Student chooses an Educator and a course that she wants to enroll in
+\item A Student chooses an Educator and a course that she wants to enroll in.
 \item If the course is offered on a pre-paid basis, the Student uses her app to pay the fee.
-\item The Student’s application communicates with the Educators’ software and performs the key exchange.
-\item During the course, the Educator provides assignments that the Student has to complete in order to get the score. The Educator’s software encrypts the assignments with the key the parties agreed upon, and puts it into a distributed Object Store.
-\item The Student acquires the assignment, completes it and puts the solution to the Object Store (which is encrypted as well).
-\item The Educator then grades the solution and transfers the artifacts along with the score to the blockchain.
+\item During the course, the Educator provides assignments that the Student has to complete in order to get the score.
+\item The Student acquires the assignment, completes it and sends the signed solution back to the Educator (communication between the Student and the Educator happens off-chain).
+\item The Educator then stores the solution locally, grades it,  and transfers the score with the hash of the solution to the blockchain.
 \item Upon the completion of the course, the Student acquires a final score based on the scores she got for her assignments. This final score is also added to the Educator’s chain.
 \end{enumerate}
 

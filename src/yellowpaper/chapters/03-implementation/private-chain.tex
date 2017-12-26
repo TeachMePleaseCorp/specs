@@ -1,9 +1,12 @@
 \subsection{Private chain}
+\label{sec:priv-chain}
+
+Every educator has a private chain. It stores the data about students, and can generate answers for the queries described above.
 
 Private chain comprises of two main data structures:
 \begin{itemize}
-\item Merkle tree which consists of private blocks.
-\item Indexed SQL database. The database stores links to transactions in the Merkle tree, indexed by tuples $(studentId, studentGrades)$.
+\item Set of transactions batched into blocks. Every block contains a list of transactions packed into a Merkle tree.
+\item Links to the transactions stored in the B+-tree with keys (studentId, studentGrade). Indexes constructed in such a way that more popular activities go first.
 \end{itemize}
 
 The structure of the private block is shown in Figure~\ref{fig:privateblocks}. The block consists of a public \textit{header} that the Educators relay to the Witnesses, and the private \textit{body} that remains in the educational institute until it receives a data disclosure request.
@@ -45,4 +48,18 @@ The Educator's private block body comprises an ordered set of Merkle-authenticat
 
 The private block header consists of the transactions Merkle root along with the previous block hash and the information on the Activity Type Graph modifications (ATG delta). The \textit{ATG delta} part allows the Educators to inform the Witnesses and the Archivists of the modifications to the courses they teach.
 
-After the end of the block time slot, an Educator signs the block header and submits it to the Witnesses so that the private transactions can be confirmed by the public chain. Thus, the private blocks form a publicly verifiable chain of events, grouped according to the activity type.
+An Educator collects private transactions into the blocks with no more than $K$ transactions per each block. After that, an Educator submits signed block header to the Witnesses so that private transactions can be confirmed by the public chain. Thus, the private blocks form a publicly verifiable chain of events.
+
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.5\textwidth]{merkle-tree}
+\caption{Example of Merkle tree}
+\label{fig:merkle-tree}
+\end{figure}
+
+
+
+To incentivize Witnesses to include private block headers into the public chain, an Educator should pay some amount of coins per each private block. We should take into consideration that an educator may be both a local tutor and some big university. Depending on that, a number of transactions per each block, as well as paying capacity, may differ. So the cost of a digest publication linearly grows with the size. To achieve the ability to prove the size of the Merkle tree, we will store it together with a hash in each node(as shown in \ref{fig:merkle-tree}). So every transaction disclosure will also verify the size. [The alternative idea described in the appendix].
+
+

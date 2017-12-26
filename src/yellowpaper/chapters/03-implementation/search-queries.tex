@@ -1,8 +1,6 @@
 \subsection{Search queries}
-For every vertex $subjectId$ in the ATG, we can define 
-$avgGrade_{subjectId}$ as a weighted average of all grades in this subgraph. It could be a good approximation of the score of a student in this area of knowledge.
 
-Educator can answer one of the following queries:
+An educator can answer one of the following queries:
 \begin{itemize}
 \item For a set of pairs $(subjectId_1, minGrade_1)$, $(subjectId_2, minGrade_2)$, ..., $(subject_n, minGrade_n)$ and some $Count$, find no more than $Count$  students with grades satisfying the following inequalities:
 \[
@@ -14,5 +12,5 @@ avgGrade_{subjectId_1} >= minGrade_1 \\ avgGrade_{subjectId_2} >= minGrade_2 \\
 \right.
 \]
 
-\item For a given identifier of student, return all info about this student.
+\item For the given identifier of a student, return all info about this student.
 \end{itemize}

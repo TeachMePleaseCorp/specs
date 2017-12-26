@@ -6,7 +6,7 @@ Every educator has a private chain. It stores the data about students, and can g
 Private chain comprises of two main data structures:
 \begin{itemize}
 \item Set of transactions batched into blocks. Every block contains a list of transactions packed into a Merkle tree.
-\item The database, that stores links to transactions in the Merkle tree, this indexed by tuples $(studentId, studentGrades)$. This database 
+\item Links to the transactions stored in the B+-tree with keys (studentId, studentGrade). Indexes constructed in such a way that more popular activities go first.
 \end{itemize}
 
 The structure of the private block is shown in Figure~\ref{fig:privateblocks}. The block consists of a public \textit{header} that the Educators relay to the Witnesses, and the private \textit{body} that remains in the educational institute until it receives a data disclosure request.

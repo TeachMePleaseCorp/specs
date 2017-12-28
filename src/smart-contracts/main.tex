@@ -48,7 +48,7 @@ There are 2 kinds of accounts:
 
 Robot account should contain, aside from token mapping:
 \begin{itemize}
-  \item Data storage for smart contract to use;
+  \item Data storage for smart contract state;
   \item The code to control the account, compiled to Plutus Core language.
 \end{itemize}
 
@@ -90,9 +90,23 @@ Each NIF has an invocation cost.
 
 \section*{Transaction}
 
-Transaction will carry not only funds, but possibly a message, too.
+We will cover "simple money transfer" and "data disclosure" transactions in this section.
 
-Message if present will contain the name of exported function and arguments to be supplied upon invocation.
+"Simple money transfer" transactions will be implemented as transactions with empty "function call" field.
+
+Transferral transaction must contain:
+\begin{itemize}
+  \item Sender signature;
+  \item Receiver signature;
+  \item Amount and kind of funds transferred (must be non-zero overall);
+  \item "Nonce" to prevent double-invocation.
+  \item (Optional) textual message for the receiver;
+  \item (Optional) function call to be invoked upon transaction approval.
+\end{itemize}
+
+Transaction is the only way for accounts to interact.
+
+Function call (if present) will contain the name of exported function and arguments to be supplied upon invocation.
 
 The function would be invoked like that:
 
@@ -100,12 +114,14 @@ The function would be invoked like that:
 function-name(Seller-signature, amount, value1, value2, ..., valueN)
 \end{verbatim}
 
-On successful code invocation, the money will be transmitted to the Target account and the costs will be demanded from the Sender.
+On successful code invocation, money will be transmitted to the Target account and the costs will be demanded from the Sender.
 If code fails, the transaction is not published as successful and is rejected.
 
 If there is not enough money supplied for the operation or the code raised an error, whole transaction will fail.
 
-If there is no code call in transaction, the code invocation is assumed successful.
+If there is no function call in transaction, the code invocation is assumed successful.
+
+The fee for transaction approval will depend on NIFs invoked and will have cost calculated as \verb|NifInvoked + C * sqr(NifInvoked)| where \verb|C| is small enough so fast-ending transactions will not notice it; in the same time big transactions (like the one trying to evaluate \verb|akkermann(10, 10)|) will run out of gas.
 
 \section*{Smart-contract mechanics}
 

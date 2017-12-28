@@ -1,0 +1,245 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{longtable,tabu}
+\usepackage{multirow}
+\usepackage{fontawesome}
+\usepackage{scrextend}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\date{
+  Version 0.1
+  \today
+}
+
+\begin{document}
+
+\section*{Rationale}
+
+For Educators and Recruters to trade securely, smart contract mechanism is required.
+
+\section*{Requirements}
+
+The smart-contract should allow:
+\begin{itemize}
+  \item Secure data trading with no trust to either side;
+  \item Solving conflicts;
+  \item Being extensible.
+\end{itemize}
+
+\section*{Accounts}
+
+There are 2 kinds of accounts:
+\begin{itemize}
+  \item Personal: created for each client, directly belongs to that client;
+  \item Robot - created by client, doesn't belong directly to that client (and anyone else); represents smart contract.
+\end{itemize}
+
+Robot account should contain, aside from token mapping:
+\begin{itemize}
+  \item Data storage for smart contract to use;
+  \item The code to control the account, compiled to Plutus Core language.
+\end{itemize}
+
+The Plutus Core language allows declaring a module with exported (public) methods.
+These methods will be the public API for the account.
+
+One can evaluate the Plutus Core code itself (not just call public methods) if account directly belongs to her.
+Personal accounts don't have any persistent associated code to control them.
+
+\section*{Scripting}
+
+The Plutus language \cite{plutus} will be used to program Robot nodes.
+Any interaction with account is done via Plutus code.
+
+The evaluation cost is collected and summed into Fee.
+
+To prevent account-multiplication/boolean-switch-scamming attacks, we must assign relatively high cost to such operations as:
+\begin{itemize}
+  \item Robot-account creation;
+  \item account "data" changes.
+\end{itemize}
+
+"Sandbox run" can be performed, to check costs and programming errors.
+
+We will call natively-implemented functions to be called from Plutus Core "NIFs".
+
+\section*{NIFs}
+
+NIF is an (ortogonal to each other) action to be invoked on Account.
+NIF is the only source of changes in Account.
+
+The only operation outside the NIF scope is creation of account directly belonging to the client.
+That should be impossible to do with NIF for security reasons.
+
+Any operation on the Account to be implemented should be represented as a call to NIF OR as a sequence of NIF-calls.
+This will allow us to reason about security/validity of operations with more confidence and limit the access and scope of each operation.
+
+Each NIF has an invocation cost.
+
+\section*{Transaction}
+
+Transaction will carry not only funds, but possibly a message, too.
+
+Message if present will contain the name of exported function and arguments to be supplied upon invocation.
+
+The function would be invoked like that:
+
+\begin{verbatim}
+function-name(Seller-signature, amount, value1, value2, ..., valueN)
+\end{verbatim}
+
+On successful code invocation, the money will be transmitted to the Target account and the costs will be demanded from the Sender.
+If code fails, the transaction is not published as successful and is rejected.
+
+If there is not enough money supplied for the operation or the code raised an error, whole transaction will fail.
+
+If there is no code call in transaction, the code invocation is assumed successful.
+
+\section*{Smart-contract mechanics}
+
+We assume that we have 2 sides:
+\begin{itemize}
+  \item Buyer
+  \item Seller.
+\end{itemize}
+
+"Gas" below is the estimation of the operation cost. The name and idea is taken from Etherium \cite{eth}.
+
+Smart contracts would work as follows. Buyer invokes a transaction which runs code directly on his account, that constructs a robot with following exported methods
+
+\begin{itemize}
+  \item \begin{verbatim} initiate(); \end{verbatim}
+  \item \begin{verbatim} accept-fee(); \end{verbatim}
+  \item \begin{verbatim} accept(); \end{verbatim}
+  \item \begin{verbatim} reject(block, proof); \end{verbatim}
+  \item \begin{verbatim} refuse(); \end{verbatim}
+  \item \begin{verbatim} check-time(), \end{verbatim}
+\end{itemize}
+carrying \verb|Sum + Gas| amount of currency and some \verb|predicate| to check the data.
+\newline
+\newline
+Here is the state machine of that Robot-account:
+
+\begin{verbatim}
+  (0) Account was created.
+    "initiate" from Buyer:
+      Send an invitation to buyer
+      AND GOTO 1
+
+    "reject" from Buyer: cleanup if something is wrong
+      GOTO 4
+
+  (1) The trade was started.
+        "accept" from Buyer
+    AND "accept" from Seller: both accepted, terminating contract
+      GOTO 3
+
+    "reject" from Buyer
+      GOTO 2
+
+    "refuse" from Seller: in case smart contract doesn't hold enough currency.
+      GOTO 4
+
+    "check-time" from Seller
+      when time-spent > TIMEOUT
+        GOTO 3
+
+    "check-time" from Buyer
+      when time-spent > TIMEOUT
+      AND  Seller did not respond in time
+        GOTO 4
+
+  (2) Arbitration.
+    The robot invokes `check-block-and-proof` function.
+    If it signals that Buyer is right (block invalidates the proof OR the predicate fails),
+      GOTO 4
+    else if Seller is right
+      GOTO 3
+
+  (3)
+    Sum is sent to Seller.
+    GOTO 4.
+
+  (4) Cleanup. The account is closed and all remaining money
+     are sent to the Buyer.
+
+\end{verbatim}
+
+\section*{Example}
+
+Lets assume there are:
+\begin{itemize}
+  \item Seller which has declared that he has his students' Linear Algebra marks for Nov, 2018 worth 500 tokens (signed in some private Merkle tree);
+  \item Buyer which has 600 tokens available.
+\end{itemize}
+
+We will consider three cases:
+\begin{itemize}
+  \item Seller tried to send Buyer garbage instead of data;
+  \item Buyer tried to blame Seller in giving her invalid data with data being completely valid (in terms of signature and predicate).
+  \item Buyer decided to not \verb|accept()| the contract.
+\end{itemize}
+
+All trades will have same initial part, so we will branch when nessessary.
+The trades will go as follows:
+\begin{itemize}
+  \item Buyer formulates a predicate to check that data corresponds its description.
+
+  \item She estimates the gas cost to be covered by 20 tokens max.
+
+  \item Then she creates smart account using the scheme above with 500 + 20 tokens and the predicate.
+
+  \item She checks that everything is right and invokes \verb|initiate()|, which notifies Seller.
+
+  \item Seller accepts and sends Buyer encrypted data via prvate channel, along with key.
+
+  \begin{enumerate}
+    \item Seller tries to send garbage:
+      \begin{itemize}
+        \item Buyer decrypts the data and finds that one block signature is invalid.
+
+        \item Then she invokes \verb|reject(unencrypted-block, proof)| to start arbitration.
+
+        \item The smart account performs \verb|check-block-and-proof(block, proof)| and finds that Buyer was right.
+
+        \item Then it returns all remaining funds to Buyer.
+      \end{itemize}
+    \item Buyer tries to blame Seller with valid data:
+      \begin{itemize}
+        \item Buyer selects the block to call "invalid".
+
+        \item Then she invokes \verb|reject(unencrypted-block, proof)| to start arbitration.
+
+        \item The smart account performs \verb|check-block-and-proof(block, proof)| and finds that Buyer was not right.
+
+        \item Then it send 500 tokens to Seller and all remaining currency to Buyer.
+      \end{itemize}
+    \item Buyer receives the data, but remains silent:
+      \begin{itemize}
+        \item Seller after some time calls \verb|check-time()|.
+
+        \item If the timeout is expired, 500 tokens are sent to Seller.
+
+        \item All remaining currency is sent to Buyer.
+      \end{itemize}
+  \end{enumerate}
+
+  \end{itemize}
+
+  \begin{thebibliography}{50}
+    \bibitem{plutus} \url{https://github.com/kframework/plutus-core-semantics/blob/master/docs/Plutus%20Core%20Grammar.pdf}.
+    \bibitem{eth} \url{http://ethdocs.org/en/latest/contracts-and-transactions/account-types-gas-and-transactions.html}.
+  \end{thebibliography}
+\end{document}

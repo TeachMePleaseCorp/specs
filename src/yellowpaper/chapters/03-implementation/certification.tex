@@ -4,6 +4,9 @@ The permissionless nature of our public chain leads to the ability for malevolen
 
 These issues currently can not be solved solely on the protocol level: they require an external source of information to determine the physical existence and the reputation of an Educator. Although we leave the public chain open for the Educators to submit their private block headers, we propose to add a separate layer of reputation and trust on top of the protocol.
 
-We do so by introducing the Archivists -- the entities that join the network with the approval from another Archivist. Their main role is to add a trust level above just the raw protocol: they store the certificates of the Educational institutes and have the right to revoke those certificates. Furthermore, the Archivists are the entities responsible for determining the ratings of the particular Educators. The Archivists base their rating on the off-chain sources of information and gain authority for providing valid ratings and performing all the necessary compliance procedures for the Educators.
-
-While in theory the Recruiters can query the Educators directly and initiate a data disclosure request, they are generally discouraged to do so. We expect the Recruiters to be willing to pay extra fees to the Archivists for certificate validation and ranking of the Students depending on the Educators' ratings and other factors upon request. We describe the data disclosure process in detail in section \ref{sec:DataDisclosure}
+We do so by disallowing a new Educator to join the network without an approval
+from another Educator. Educators are supposed to rate another Educators basing
+on off-chain sources of information -- such as a publication on an official site
+of a university, which claims that given Disciplina public key is issued by this
+university. By approving each other, Educators form a \textit{web of trust}.
+Ratings of Educators are backed up by ratings of Educators which trust them.

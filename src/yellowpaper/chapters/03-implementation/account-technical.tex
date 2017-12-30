@@ -1,49 +1,12 @@
-\documentclass[a4paper]{article}
+\subsection{Smart-contract implementation}
 
-%% Language and font encodings
-\usepackage[english]{babel}
-\usepackage[utf8x]{inputenc}
-\usepackage[T1]{fontenc}
 
-%% Sets page size and margins
-\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
-
-%% Useful packages
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage{longtable,tabu}
-\usepackage{multirow}
-\usepackage{fontawesome}
-\usepackage{scrextend}
-\usepackage[colorinlistoftodos]{todonotes}
-\usepackage[colorlinks=true, allcolors=blue]{hyperref}
-
-\date{
-  Version 0.1
-  \today
-}
-
-\begin{document}
-
-\section*{Rationale}
-
-For Educators and Recruters to trade securely, smart contract mechanism is required.
-
-\section*{Requirements}
-
-The smart-contract should allow:
-\begin{itemize}
-  \item Secure data trading with no trust to either side;
-  \item Solving conflicts;
-  \item Being extensible.
-\end{itemize}
-
-\section*{Accounts}
+\subsubsection{Accounts}
 
 There are 2 kinds of accounts:
 \begin{itemize}
   \item Personal: created for each client, directly belongs to that client;
-  \item Robot - created by client, doesn't belong directly to that client (and anyone else); represents smart contract.
+  \item Robot: created by client, doesn't belong directly to that client (and anyone else); represents smart contract.
 \end{itemize}
 
 Robot account should contain, aside from token mapping:
@@ -58,24 +21,18 @@ These methods will be the public API for the account.
 One can evaluate the Plutus Core code itself (not just call public methods) if account directly belongs to her.
 Personal accounts don't have any persistent associated code to control them.
 
-\section*{Scripting}
+\subsubsection{Scripting}
 
 The Plutus language \cite{plutus} will be used to program Robot nodes.
 Any interaction with account is done via Plutus code.
 
 The evaluation cost is collected and summed into Fee.
 
-To prevent account-multiplication/boolean-switch-scamming attacks, we must assign relatively high cost to such operations as:
-\begin{itemize}
-  \item Robot-account creation;
-  \item account "data" changes.
-\end{itemize}
-
 "Sandbox run" can be performed, to check costs and programming errors.
 
 We will call natively-implemented functions to be called from Plutus Core "NIFs".
 
-\section*{NIFs}
+\subsubsection{NIFs}
 
 NIF is an (ortogonal to each other) action to be invoked on Account.
 NIF is the only source of changes in Account.
@@ -88,7 +45,7 @@ This will allow us to reason about security/validity of operations with more con
 
 Each NIF has an invocation cost.
 
-\section*{Transaction}
+\subsubsection{Transaction}
 
 We will cover "simple money transfer" and "data disclosure" transactions in this section.
 
@@ -102,6 +59,7 @@ Transferral transaction must contain:
   \item "Nonce" to prevent double-invocation.
   \item (Optional) textual message for the receiver;
   \item (Optional) function call to be invoked upon transaction approval.
+  \item Digest of all other fields, encrypted with Sender private key.
 \end{itemize}
 
 Transaction is the only way for accounts to interact.
@@ -121,9 +79,13 @@ If there is not enough money supplied for the operation or the code raised an er
 
 If there is no function call in transaction, the code invocation is assumed successful.
 
-The fee for transaction approval will depend on NIFs invoked and will have cost calculated as \verb|NifInvoked + C * sqr(NifInvoked)| where \verb|C| is small enough so fast-ending transactions will not notice it; in the same time big transactions (like the one trying to evaluate \verb|akkermann(10, 10)|) will run out of gas.
+The fee for transaction approval will depend on NIFs invoked and will have its cost calculated as \verb|K * (NifInvoked + C * sqr(NifInvoked))| where
+\begin{itemize}
+    \item \verb|K| is a global tuning parameter;
+    \item \verb|C| is a parameter to cut off long transactions. It is small enough, so fast-ending transactions will not notice it; in the same time big transactions (like the one trying to evaluate \verb|akkermann(10, 10)|) will run out of gas.
+\end{itemize}
 
-\section*{Smart-contract mechanics}
+\subsubsection{Smart-contract mechanics}
 
 We assume that we have 2 sides:
 \begin{itemize}
@@ -193,7 +155,7 @@ Here is the state machine of that Robot-account:
 
 \end{verbatim}
 
-\section*{Example}
+\subsubsection{Example}
 
 Lets assume there are:
 \begin{itemize}
@@ -252,10 +214,4 @@ The trades will go as follows:
       \end{itemize}
   \end{enumerate}
 
-  \end{itemize}
-
-  \begin{thebibliography}{50}
-    \bibitem{plutus} \url{https://github.com/kframework/plutus-core-semantics/blob/master/docs/Plutus%20Core%20Grammar.pdf}.
-    \bibitem{eth} \url{http://ethdocs.org/en/latest/contracts-and-transactions/account-types-gas-and-transactions.html}.
-  \end{thebibliography}
-\end{document}
+\end{itemize}

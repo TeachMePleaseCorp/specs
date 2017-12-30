@@ -10,6 +10,11 @@ The process of data disclosure involves direct communication between a particula
 D = \Concat_{i=1}^N d_i, \quad \SizeOf(d_i) \leq 1~\mathrm{KiB}
 \end{equation}
 
+\item Compute a Merkle root of the unencrypted chunks:
+\begin{equation}
+R_0 = \Root(\MerkleTree(\Lock{D}))
+\end{equation}
+
 \item Generate a symmetric key $k$
 \item Encrypt each~$d_i$ with $k$ and make an array of encrypted chunks:
 \begin{equation}
@@ -35,7 +40,7 @@ C_D = \alpha \operatorname{exp}(s)
 The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
 
 \begin{enumerate}
-\item \tParty{E} creates a contract on the public chain and sends the following data to the contract: $\Sign_\Party{E}(C_D,\ \SizeOf(\Lock{D}), R)$. She also sends a predefined amount of money $C_E$ to the contract address. $C_E$ is a security deposit: if \tParty{E} tries to cheat, she would lose this money.
+\item \tParty{E} creates a contract on the public chain and sends the following data to the contract: $\Sign_\Party{E}(C_D,\ \SizeOf(\Lock{D}), R, R_0)$. She also sends a predefined amount of money $C_E$ to the contract address. $C_E$ is a security deposit: if \tParty{E} tries to cheat, she would lose this money.
 \item The buyer generates a new keypair ($\PubKey{B},\ \SecretKey{B}$), and sends $C_D$ worth of money to the contract address. Along with the money, \tParty{B} sends the public key $\PubKey{B}$ of the newly generated keypair, and the size of the data.
 \item \tParty{E} transfers the encrypted data chunks $\Lock{D}$ to the buyer. \tParty{B} computes the Merkle root $R'$ and the size $s'$ of the received data $\Lock{D}'$:
 \begin{equation}

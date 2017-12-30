@@ -92,63 +92,77 @@ We assume that we have 2 sides:
 
 "Gas" below is the estimation of the operation cost. The name and idea is taken from Etherium \cite{eth}.
 
-Smart contracts would work as follows. Buyer invokes a transaction which runs code directly on his account, that constructs a robot with following exported methods
+Smart contracts would work as follows. Seller invokes a transaction which runs code directly on his account, that constructs a robot with following exported methods
 
 \begin{itemize}
-  \item \begin{verbatim} initiate(); \end{verbatim}
-  \item \begin{verbatim} accept-fee(); \end{verbatim}
-  \item \begin{verbatim} accept(); \end{verbatim}
-  \item \begin{verbatim} reject(block, proof); \end{verbatim}
-  \item \begin{verbatim} refuse(); \end{verbatim}
+  \item \begin{verbatim} start-trade(); \end{verbatim}
+  \item \begin{verbatim} accept-encrypted(encrypted-mroot, size); \end{verbatim}
+  \item \begin{verbatim} handshake(); \end{verbatim}
+  \item \begin{verbatim} reject(sk, block, proof-enc, proof-plain); \end{verbatim}
   \item \begin{verbatim} check-time(), \end{verbatim}
+  \item \begin{verbatim} cancel(), \end{verbatim}
 \end{itemize}
-carrying \verb|Sum + Gas| amount of currency and some \verb|predicate| to check the data.
-\newline
-\newline
+carrying \verb|Fee + Gas| amount of currency and some \verb|predicate| to check the data if applicable.
+
+This robot is initilized with following data:
+\begin{itemize}
+  \item Cost in tokens;
+  \item Size of plain data;
+  \item Merkle tree root of encrypted data;
+  \item Merkle tree root of plain data.
+\end{itemize}
+
 Here is the state machine of that Robot-account:
 
 \begin{verbatim}
-  (0) Account was created.
-    "initiate" from Buyer:
-      Send an invitation to buyer
-      AND GOTO 1
+  (0) Account has just been created.
+    "start-trade" from Buyer
+      WHEN transferred amount = Sum + Fee
+        Notify Seller
+        AND GOTO 1
 
-    "reject" from Buyer: cleanup if something is wrong
-      GOTO 4
+  (1) The trade is started.
+    "accept-encrypted(encrypted-mroot, size)" from Buyer
+      IF encrypted Merkle root and size are the same as initially set in Robot state,
+        GOTO 2
+      ELSE
+        GOTO 7
 
-  (1) The trade was started.
-        "accept" from Buyer
-    AND "accept" from Seller: both accepted, terminating contract
+    "check-time" from Seller or Buyer
+      when time-spent > TIMEOUT
+        GOTO 7
+
+  (2) Data was transferred. Off the band, the symmetric key is sent.
+    "reject(sk, block, encrypted-proof, plain-proof)" from Buyer
       GOTO 3
 
-    "reject" from Buyer
-      GOTO 2
-
-    "refuse" from Seller: in case smart contract doesn't hold enough currency.
+    "handshake" from Buyer
       GOTO 4
 
-    "check-time" from Seller
-      when time-spent > TIMEOUT
-        GOTO 3
-
-    "check-time" from Buyer
-      when time-spent > TIMEOUT
-      AND  Seller did not respond in time
-        GOTO 4
-
-  (2) Arbitration.
-    The robot invokes `check-block-and-proof` function.
-    If it signals that Buyer is right (block invalidates the proof OR the predicate fails),
-      GOTO 4
+  (3) Arbitration.
+    The robot performs check.
+    If it finds that Buyer is right (block invalidates either of proofs OR the predicate fails),
+      GOTO 6
     else if Seller is right
-      GOTO 3
+      GOTO 5
 
-  (3)
-    Sum is sent to Seller.
-    GOTO 4.
+  (4) Cleanup I.
+    (Sum + Fee) is sent to Seller.
+    Fee is sent to Buyer.
+    The account is closed.
 
-  (4) Cleanup. The account is closed and all remaining money
-     are sent to the Buyer.
+  (5) Cleanup II.
+    All remaining money is sent to Seller.
+    The account is closed.
+
+  (6) Cleanup III.
+    All remaining money is sent to Buyer.
+    The account is closed.
+
+  (7) Cleanup VI.
+    Fee is sent to Seller.
+    (Sum + Fee) is sent to Buyer.
+    The account is closed.
 
 \end{verbatim}
 
@@ -156,40 +170,45 @@ Here is the state machine of that Robot-account:
 
 Lets assume there are:
 \begin{itemize}
-  \item Seller which has declared that he has his students' Linear Algebra marks for Nov, 2018 worth 500 tokens (signed in some private Merkle tree);
-  \item Buyer which has 600 tokens available.
+  \item Seller, which has declared that he has his students' Linear Algebra marks for Nov, 2018 worth 500 tokens (signed in some private Merkle tree);
+  \item Buyer, which has 600 tokens available.
+  \item Robot, which is a smart account created by Seller.
 \end{itemize}
 
 We will consider three cases:
 \begin{itemize}
-  \item Seller tried to send Buyer garbage instead of data;
+  \item Seller sends nothing at all;
+  \item Seller tried to send Buyer encrypted garbage instead of data;
   \item Buyer tried to blame Seller in giving her invalid data with data being completely valid (in terms of signature and predicate).
-  \item Buyer decided to not \verb|accept()| the contract.
 \end{itemize}
 
 All trades will have same initial part, so we will branch when nessessary.
 The trades will go as follows:
 \begin{itemize}
-  \item Buyer formulates a predicate to check that data corresponds its description.
+  \item (Optionally) Seller formulates a predicate to check that data corresponds its description OR uses universal truth as predicate.
 
-  \item She estimates the gas cost to be covered by 20 tokens max.
+  \item She determines the Fee to be 20 tokens and adds 10 tokens as Gas.
 
-  \item Then she creates smart account using the scheme above with 500 + 20 tokens and the predicate.
+  \item Then she creates Robot using the scheme above with 20 + 10 tokens and the predicate.
 
-  \item She checks that everything is right and invokes \verb|initiate()|, which notifies Seller.
-
-  \item Seller accepts and sends Buyer encrypted data via prvate channel, along with key.
+  \item Buyer accepts the trade and sends \verb|start-trade()| to Robot along with 500 + 20 tokens.
 
   \begin{enumerate}
-    \item Seller tries to send garbage:
+    \item Seller sends badly sized data:
       \begin{itemize}
-        \item Buyer decrypts the data and finds that one block signature is invalid.
+        \item The size of transferred data is invalid.
+        \item The trade is stalled until \tau moment.
+        \item Buyer is able to send \verb|check-time()| message to revert trade and to return the money she sent.
+      \end{itemize}
+    \item Seller tries to send garbage or one of blocks decrypts to garbage:
+      \begin{itemize}
+        \item Buyer finds that at least one block signature is invalid in either form.
 
-        \item Then she invokes \verb|reject(unencrypted-block, proof)| to start arbitration.
+        \item She invokes \verb|reject(sk, block, encrypted-proof, plain-proof)| to start arbitration.
 
-        \item The smart account performs \verb|check-block-and-proof(block, proof)| and finds that Buyer was right.
+        \item Robot checks that block falsifies proofs and that Buyer was right.
 
-        \item Then it returns all remaining funds to Buyer.
+        \item Robot returns all remaining funds to Buyer.
       \end{itemize}
     \item Buyer tries to blame Seller with valid data:
       \begin{itemize}

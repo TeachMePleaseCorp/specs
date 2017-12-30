@@ -18,12 +18,12 @@ R_0 = \Root(\MerkleTree(\Lock{D}))
 \item Generate a symmetric key $k$
 \item Encrypt each~$d_i$ with $k$ and make an array of encrypted chunks:
 \begin{equation}
-\Lock{D} = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
+\Lock{E} = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
 \end{equation}
 
 \item Compute a Merkle root of the encrypted chunks:
 \begin{equation}
-R = \Root(\MerkleTree(\Lock{D}))
+R = \Root(\MerkleTree(\Lock{E}))
 \end{equation}
 
 \item Determine the size of the data she is going to reveal:
@@ -40,14 +40,14 @@ C_D = \alpha \operatorname{exp}(s)
 The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
 
 \begin{enumerate}
-\item \tParty{E} creates a contract on the public chain and sends the following data to the contract: $\Sign_\Party{E}(C_D,\ \SizeOf(\Lock{D}), R, R_0)$. She also sends a predefined amount of money $C_E$ to the contract address. $C_E$ is a security deposit: if \tParty{E} tries to cheat, she would lose this money.
+\item \tParty{E} creates a contract on the public chain and sends the following data to the contract: $\Sign_\Party{E}(C_D,\ \SizeOf(\Lock{E}), R, R_0)$. She also sends a predefined amount of money $C_E$ to the contract address. $C_E$ is a security deposit: if \tParty{E} tries to cheat, she would lose this money.
 \item The buyer generates a new keypair ($\PubKey{B},\ \SecretKey{B}$), and sends $C_D$ worth of money to the contract address. Along with the money, \tParty{B} sends the public key $\PubKey{B}$ of the newly generated keypair, and the size of the data.
-\item \tParty{E} transfers the encrypted data chunks $\Lock{D}$ to the buyer. \tParty{B} computes the Merkle root $R'$ and the size $s'$ of the received data $\Lock{D}'$:
+\item \tParty{E} transfers the encrypted data chunks $\Lock{E}$ to the buyer. \tParty{B} computes the Merkle root $R'$ and the size $s'$ of the received data $\Lock{E}'$:
 \begin{equation}
-R' = \Root(\MerkleTree(\Lock{D}'))
+R' = \Root(\MerkleTree(\Lock{E}'))
 \end{equation}
 \begin{equation}
-s' = \SizeOf(\Lock{D}')
+s' = \SizeOf(\Lock{E}')
 \end{equation}
 \item \tParty{B} makes a transaction with a receipt $\Sign_\Party{B}(\{R',\ s'\})$ to the contract address. The parties can proceed if and only if the following is true:
 \begin{equation}
@@ -55,7 +55,7 @@ s' = \SizeOf(\Lock{D}')
 \end{equation}
 Otherwise, the protocol halts.
 \item \tParty{E} sends $\Sign_\Party{E}(\Encrypt_\Party{B}(k))$ to the contract.
-\item \tParty{B} decyphers and checks the received data. In case some data chunk $e_i \in \Lock{D}$ is invalid, \tParty{B}~sends a transaction with~$\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D}))\}$ to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$.  She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
+\item \tParty{B} decyphers and checks the received data. In case some data chunk $e_i \in \Lock{E}$ is invalid, \tParty{B}~sends a transaction with~$\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{E})),\ \Path(d_i,\ \MerkleTree(\Lock{D}))\}$ to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$.  She also shares proof that~$e_i$ was indeed part of a Merkle tree with root~$R$ and the~$d_i$ was part of a Merkle tree~$R_0$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
 \end{enumerate}
 
 The on-chain communications of the parties (steps 2, 4, 5, 6) are bounded by a time frame $\tau$. In order for the transaction to be valid, the time $\Delta t$ passed since the previous on-chain step has to be less than or equal to $\tau$. In case $\Delta t > \tau$ the communication between the parties is considered over, and one of the protocol exit points is automatically triggered. The protocol exit points are described in detail in Table~\ref{table:data-disclosure-exit-points}.

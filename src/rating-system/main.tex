@@ -28,9 +28,15 @@ Serokell, \href{https://serokell.io}{\texttt{https://serokell.io}}
 \maketitle
 
 \section*{Rationale}
-The current architecture of the platform relies on \textit{third parties} called Archivists to provide information on the existence of the Educators and the quality of education. However, we suppose that these third parties would tend to rate large educational institutions and ignore private teachers and small schools (see e. g. \href{https://www.timeshighereducation.com/world-university-rankings}{Times Higher Education} ratings). Thus, it worth examining whether we can stop relying on the Archivists.
+The current architecture of the platform relies on connecting the Educators in a
+\textit{web of trust} to ensure the existence of the Educators and the quality
+of education. We suppose that in the beginning there would be an initial clique
+of large Educators, backed up by developers, which will later add another
+Educators to their web of trust. However, we suppose that these large Educators would
+tend ignore private teachers and small schools. Thus, it worth examining whether
+we can allow new Educators to join the network without approval of existing Educators.
 
-With Archivist nodes being removed, the following security concerns arise:
+However, removing this constraint leads to the following security concerns:
 \begin{itemize}
 \item A malevolent student can forge educational records by creating a fake Educator node.
 \item A corrupted Educator can create fake students to increase the size of the dataset.
@@ -63,6 +69,5 @@ Moreover, a \textit{grade} is a biased measure of students' knowledge. However, 
   \end{itemize}
 
 \end{enumerate}
-
 
 \end{document}

@@ -61,8 +61,16 @@ An Educator collects private transactions into the blocks with no more than $K$ 
 \label{fig:merkle-tree}
 \end{figure}
 
+To incentivize Witnesses to include private block headers into the public chain,
+an Educator should pay some amount of coins per each private block. We should
+take into consideration that an educator may be both a local tutor and some big
+university. Depending on that, a number of transactions per each block, as well
+as paying capacity, may differ. So the cost of a digest publication linearly
+grows with the size. To achieve the ability to prove the size of the Merkle
+tree, we will store it together with a hash in each node(as shown in
+\ref{fig:merkle-tree}). So every transaction disclosure will also verify the
+size.
 
-
-To incentivize Witnesses to include private block headers into the public chain, an Educator should pay some amount of coins per each private block. We should take into consideration that an educator may be both a local tutor and some big university. Depending on that, a number of transactions per each block, as well as paying capacity, may differ. So the cost of a digest publication linearly grows with the size. To achieve the ability to prove the size of the Merkle tree, we will store it together with a hash in each node(as shown in \ref{fig:merkle-tree}). So every transaction disclosure will also verify the size. [The alternative idea described in the appendix].
-
-
+Alternative idea is to incentivize small educators to form pools and release
+blocks together in order to reduce costs for each individual educator. See
+appendix \ref{apx:pools} for details.

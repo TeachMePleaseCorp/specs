@@ -23,7 +23,7 @@ Personal accounts don't have any persistent associated code to control them.
 
 \subsubsection{Scripting}
 
-The Plutus language \cite{plutus} will be used to program Robot nodes.
+The Plutus language will be used to program Robot nodes.
 Any interaction with account is done via Plutus code.
 
 The evaluation cost is collected and summed into Fee.
@@ -90,7 +90,7 @@ We assume that we have 2 sides:
   \item Seller.
 \end{itemize}
 
-"Gas" below is the estimation of the operation cost. The name and idea is taken from Etherium \cite{eth}.
+"Gas" below is the estimation of the operation cost. The name and idea is taken from Etherium.
 
 Smart contracts would work as follows. Seller invokes a transaction which runs code directly on his account, that constructs a robot with following exported methods
 
@@ -197,7 +197,7 @@ The trades will go as follows:
     \item Seller sends badly sized data:
       \begin{itemize}
         \item The size of transferred data is invalid.
-        \item The trade is stalled until \tau moment.
+        \item The trade is stalled until time is out.
         \item Buyer is able to send \verb|check-time()| message to revert trade and to return the money she sent.
       \end{itemize}
     \item Seller tries to send garbage or one of blocks decrypts to garbage:

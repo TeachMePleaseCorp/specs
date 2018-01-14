@@ -2,7 +2,7 @@
 
 %% Language and font encodings
 \usepackage[english]{babel}
-\usepackage[utf8x]{inputenc}
+\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
 %% Sets page size and margins
@@ -20,7 +20,10 @@
 \usepackage[blocks]{authblk}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 \usepackage{footmisc}
+\usepackage[backend=biber]{biblatex}
+
 \graphicspath{{images/}}
+\addbibresource{references.bib}
 
 \title{Disciplina: Blockchain for Education}
 \author[1]{Kirill Kuvshinov}
@@ -59,6 +62,9 @@ Version 0.5.1\\%
 \input{chapters/03-implementation}
 \input{chapters/04-future-work}
 \input{chapters/05-conclusion}
+
+\printbibliography
+
 \pagebreak
 
 \appendix
@@ -72,7 +78,7 @@ Version 0.5.1\\%
 %\bibliographystyle{plain}
 %\bibliographystyle{alpha}
 %\bibliographystyle{unsrt}
-\bibliographystyle{abbrv}
-\bibliography{references}
+%\bibliographystyle{abbrv}
+%\bibliography{references}
 
 \end{document}

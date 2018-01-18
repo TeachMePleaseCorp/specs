@@ -35,6 +35,7 @@ data Problem
     = Garbage
     | PlaintextWasGarbage
     | WrongSecretKey
+    | SecretKeyWasNotSent
     | DataNeverSent
     deriving (Eq, Show, Enum, Bounded)
 
@@ -172,7 +173,8 @@ goodBuyer (input, problems) = case input of
 
   KeySent
     | PlaintextWasGarbage `elem` problems -> Reject
-    | WrongSecretKey      `elem` problems -> Timeout
+    | WrongSecretKey      `elem` problems -> Reject
+    | SecretKeyWasNotSent `elem` problems -> Timeout
     | otherwise                           -> Handshake
 
 

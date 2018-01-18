@@ -2,7 +2,7 @@
 {-# language TypeFamilies #-}
 {-# language LambdaCase #-}
 
-import Control.Arrow
+import Control.Arrow ((***), (&&&))
 import Control.Monad.Identity
 
 -- | Buyer decisions.

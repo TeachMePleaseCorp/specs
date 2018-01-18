@@ -32,15 +32,15 @@ The evaluation cost is collected and summed into Fee.
 
 We will call natively-implemented functions to be called from Plutus Core "NIFs".
 
+Each atomic step of execution has an invocation cost.
+
 \subsubsection{NIFs}
 
-NIF is an (ortogonal to each other) action to be invoked on Account.
+NIF is an action to be invoked on Account.
 NIF is the only source of changes in Account.
 
 Any operation on the Account to be implemented should be represented as a call to NIF OR as a sequence of NIF-calls.
 This will allow us to reason about security/validity of operations with more confidence and limit the access and scope of each operation.
-
-Each NIF has an invocation cost.
 
 \subsubsection{Transaction}
 
@@ -66,7 +66,7 @@ Function call (if present) will contain the name of exported function and argume
 The function would be invoked like that:
 
 \begin{verbatim}
-function-name(Seller-signature, amount, value1, value2, ..., valueN)
+function-name(Sender-signature, amount, value1, value2, ..., valueN)
 \end{verbatim}
 
 On successful code invocation, money will be transmitted to the Target account and the costs will be demanded from the Sender.
@@ -76,13 +76,9 @@ If there is not enough money supplied for the operation or the code raised an er
 
 If there is no function call in transaction, the code invocation is assumed successful.
 
-The fee for transaction approval will depend on NIFs invoked and will have its cost calculated as \verb|K * (NifInvoked + C * sqr(NifInvoked))| where
-\begin{itemize}
-    \item \verb|K| is a global tuning parameter;
-    \item \verb|C| is a parameter to cut off long transactions. It is small enough, so fast-ending transactions will not notice it; in the same time big transactions (like the one trying to evaluate \verb|akkermann(10, 10)|) will run out of gas.
-\end{itemize}
+The \verb|Gas| fee for transaction approval will be calculates as sum of costs for atomic actions performed.
 
-\subsubsection{Smart-contract mechanics}
+\subsubsection{Implementation of data disclosure protocol using Robot account}
 
 We assume that we have 2 sides:
 \begin{itemize}
@@ -91,25 +87,29 @@ We assume that we have 2 sides:
 \end{itemize}
 
 "Gas" below is the estimation of the operation cost. The name and idea is taken from Etherium.
+"Fee" is a forfeit to either side trying to deceive opponent.
+"Sum" is the price of data to be sold.
 
-Smart contracts would work as follows. Seller invokes a transaction which runs code directly on his account, that constructs a robot with following exported methods
+Robot would work as follows. Seller invokes a transaction which runs code directly on his account, that constructs a robot with following exported methods
 
 \begin{itemize}
   \item \begin{verbatim} start-trade(); \end{verbatim}
   \item \begin{verbatim} accept-encrypted(encrypted-mroot, size); \end{verbatim}
   \item \begin{verbatim} handshake(); \end{verbatim}
   \item \begin{verbatim} reject(sk, block, proof-enc, proof-plain); \end{verbatim}
-  \item \begin{verbatim} check-time(), \end{verbatim}
   \item \begin{verbatim} cancel(), \end{verbatim}
 \end{itemize}
-carrying \verb|Fee + Gas| amount of currency and some \verb|predicate| to check the data if applicable.
+carrying \verb|Sum + Fee + Gas| amount of currency and some \verb|predicate| to check the data if applicable.
 
-This robot is initilized with following data:
+This robot is initialized with following data:
 \begin{itemize}
   \item Cost in tokens;
   \item Size of plain data;
   \item Merkle tree root of encrypted data;
-  \item Merkle tree root of plain data.
+  \item Merkle tree root of plain data;
+  \item Timeout, after which the account is destroyed;
+  \item Sink, a person whom the remaining money will be send on timeout;
+  \item Destructor, a procedure to invoke on timeout.
 \end{itemize}
 
 Here is the state machine of that Robot-account:
@@ -128,9 +128,8 @@ Here is the state machine of that Robot-account:
       ELSE
         GOTO 7
 
-    "check-time" from Seller or Buyer
-      when time-spent > TIMEOUT
-        GOTO 7
+    Timeout!
+      GOTO 7
 
   (2) Data was transferred. Off the band, the symmetric key is sent.
     "reject(sk, block, encrypted-proof, plain-proof)" from Buyer
@@ -138,6 +137,9 @@ Here is the state machine of that Robot-account:
 
     "handshake" from Buyer
       GOTO 4
+
+    Timeout!
+      GOTO 5
 
   (3) Arbitration.
     The robot performs check.
@@ -148,8 +150,7 @@ Here is the state machine of that Robot-account:
 
   (4) Cleanup I.
     (Sum + Fee) is sent to Seller.
-    Fee is sent to Buyer.
-    The account is closed.
+    GOTO 6
 
   (5) Cleanup II.
     All remaining money is sent to Seller.
@@ -161,8 +162,7 @@ Here is the state machine of that Robot-account:
 
   (7) Cleanup VI.
     Fee is sent to Seller.
-    (Sum + Fee) is sent to Buyer.
-    The account is closed.
+    GOTO 6
 
 \end{verbatim}
 
@@ -198,7 +198,7 @@ The trades will go as follows:
       \begin{itemize}
         \item The size of transferred data is invalid.
         \item The trade is stalled until time is out.
-        \item Buyer is able to send \verb|check-time()| message to revert trade and to return the money she sent.
+        \item On timeout the trade is reverted and money is returned to Buyer.
       \end{itemize}
     \item Seller tries to send garbage or one of blocks decrypts to garbage:
       \begin{itemize}
@@ -216,16 +216,13 @@ The trades will go as follows:
 
         \item Then she invokes \verb|reject(unencrypted-block, proof)| to start arbitration.
 
-        \item The smart account performs \verb|check-block-and-proof(block, proof)| and finds that Buyer was not right.
+        \item Robot performs \verb|check-block-and-proof(block, proof)| and finds that Buyer was not right.
 
         \item Then it send 500 tokens to Seller and all remaining currency to Buyer.
       \end{itemize}
-    \item Buyer receives the data, but remains silent:
+    \item Buyer receives the data and the key, but remains silent:
       \begin{itemize}
-        \item Seller after some time calls \verb|check-time()|.
-
-        \item If the timeout is expired, 500 tokens are sent to Seller.
-
+        \item If the timeout is expired, 520 tokens are sent to Seller.
         \item All remaining currency is sent to Buyer.
       \end{itemize}
   \end{enumerate}

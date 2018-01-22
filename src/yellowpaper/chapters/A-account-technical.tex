@@ -1,7 +1,8 @@
-\subsection{Smart-contract implementation}
+\appendix
 
+\section{Smart-contract implementation}
 
-\subsubsection{Accounts}
+\subsection{Accounts}
 
 There are 2 kinds of accounts:
 \begin{itemize}
@@ -21,7 +22,7 @@ These methods will be the public API for the account.
 One can evaluate the Plutus Core code itself (not just call public methods) if account directly belongs to her.
 Personal accounts don't have any persistent associated code to control them.
 
-\subsubsection{Scripting}
+\subsection{Scripting}
 
 The Plutus language will be used to program Robot nodes.
 Any interaction with account is done via Plutus code.
@@ -34,7 +35,7 @@ We will call natively-implemented functions to be called from Plutus Core "NIFs"
 
 Each atomic step of execution has an invocation cost.
 
-\subsubsection{NIFs}
+\subsection{NIFs}
 
 NIF is an action to be invoked on Account.
 NIF is the only source of changes in Account.
@@ -42,7 +43,7 @@ NIF is the only source of changes in Account.
 Any operation on the Account to be implemented should be represented as a call to NIF OR as a sequence of NIF-calls.
 This will allow us to reason about security/validity of operations with more confidence and limit the access and scope of each operation.
 
-\subsubsection{Transaction}
+\subsection{Transaction}
 
 We will cover "simple money transfer" and "data disclosure" transactions in this section.
 
@@ -78,7 +79,7 @@ If there is no function call in transaction, the code invocation is assumed succ
 
 The \verb|Gas| fee for transaction approval will be calculates as sum of costs for atomic actions performed.
 
-\subsubsection{Implementation of data disclosure protocol using Robot account}
+\subsection{Implementation of data disclosure protocol using Robot account}
 
 We assume that we have 2 sides:
 \begin{itemize}
@@ -166,7 +167,7 @@ Here is the state machine of that Robot-account:
 
 \end{verbatim}
 
-\subsubsection{Example}
+\subsection{Example}
 
 Lets assume there are:
 \begin{itemize}

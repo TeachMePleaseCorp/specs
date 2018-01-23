@@ -1,59 +1,67 @@
 \subsection{Data Disclosure}
 \label{sec:DataDisclosure}
-The process of data disclosure involves direct communication between a particular Educator, willing to disclose a part of the data, and an interested party~\tParty{B} (e. g. a recruiter), willing to pay for this data. Suppose an Educator~\tParty{E} has some data~$D$. To mitigate the risk of secondary market creation, one should ensure that the majority of the data remains in the private blocks. We propose to increase the cost of the data exponentially to its size, thus incentivizing the buyers to make as accurate requests as possible.
 
- Before the deal \tParty{E} ought to perform some preparation steps. \tParty{E} should:
+Disciplina architecture supports three types of data disclosure requests:
 \begin{enumerate}
-\item Divide~$D$ into $N$ chunks of size no more than 1~KiB:
+  \item Request for a set of authenticated private transactions satisfying some predicate (see details in Section \ref{sec:search-queries})
+  \item Request for personalization
+  \item Request for object disclosure
+\end{enumerate}
+
+Here we describe a protocol of fair data trade between the Educator as a seller and some interested party as a buyer. Despite a few variations the protocol is almost the same for all three types of the data disclosure requests. We first lay out the private transactions disclosure protocol. Then we describe modifications to the protocol so that one can apply it to other types of data.
+
+The process of data disclosure involves direct communication between a particular Educator~\tParty{E}, willing to disclose a part of the data, and an interested party~\tParty{B} (e. g. a recruiter), willing to pay for this data. Suppose \tParty{E} has some data~$D$. In case of private transactions $D$ is a set of \textit{authenticated transactions}, i.~e. tuples $(T_{priv}, P_{priv}, H, P_{pub})$. As shown in Section~\ref{sec:fair-cv} this data along with the educator's public key is enough to prove that a certain transaction $T_{priv}$ actually occurred in some private block of the given educator.
+
+The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
+\begin{enumerate}
+\item The buyer \tParty{B} sends a signed search query $\Sign_\Party{B}(Q)$ directly to the seller \tParty{E}.
+\item Let $D$ be a set of authenticated transactions relevant for the query $Q$. \tParty{E} divides~$D$ into $N$ chunks of size no more than 1~KiB:
 
 \begin{equation}
 D = \Concat_{i=1}^N d_i, \quad \SizeOf(d_i) \leq 1~\mathrm{KiB}
 \end{equation}
 
-\item Generate a symmetric key $k$
-\item Encrypt each~$d_i$ with $k$ and make an array of encrypted chunks:
+\item \tParty{E} generates a symmetric key $k$ and encrypts each~$d_i$ with $k$. Then she makes an array of encrypted chunks:
 \begin{equation}
 \Lock{D} = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
 \end{equation}
 
-\item Compute a Merkle root of the encrypted chunks:
-\begin{equation}
-R = \Root(\MerkleTree(\Lock{D}))
-\end{equation}
+\item \tParty{E} computes the size of the encrypted answer $s = \SizeOf(\Lock{D})$, the cost of this data $C_D \sim s$, and the Merkle root of the data $R = \Root(\MerkleTree(\Lock{D}))$.
 
-\item Determine the size of the data she is going to reveal:
-\begin{equation}
-s = \SizeOf(\Lock{D})
-\end{equation}
+\item \tParty{E} sends $\Sign_\Party{E}(C_D,\ s,\ R,\ \Hash(Q))$ directly to the buyer.
 
-\item Calculate the cost of the data ($\alpha$ is some constant coefficient):
-\begin{equation}
-C_D = \alpha \operatorname{exp}(s)
-\end{equation}
-\end{enumerate}
+\item If buyer agrees to pay the price, she generates a new keypair ($\PubKey{B},\ \SecretKey{B}$). Then she initializes the contract with data provided by seller, search query $Q$, its own temporary trade public key $\PubKey{B}$ and $C_D$ amount of money.
 
-The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
+\item \label{step:seller-deposits-money} If \tParty{E} agrees to proceed, she sends a predefined amount of money $C_E$ to the contract address. $C_E$ is a security deposit: if \tParty{E} tries to cheat, she would lose this money.
 
-\begin{enumerate}
-\item \tParty{E} creates a contract on the public chain and sends the following data to the contract: $\Sign_\Party{E}(C_D,\ \SizeOf(\Lock{D}), R)$. She also sends a predefined amount of money $C_E$ to the contract address. $C_E$ is a security deposit: if \tParty{E} tries to cheat, she would lose this money.
-\item The buyer generates a new keypair ($\PubKey{B},\ \SecretKey{B}$), and sends $C_D$ worth of money to the contract address. Along with the money, \tParty{B} sends the public key $\PubKey{B}$ of the newly generated keypair, and the size of the data.
-\item \tParty{E} transfers the encrypted data chunks $\Lock{D}$ to the buyer. \tParty{B} computes the Merkle root $R'$ and the size $s'$ of the received data $\Lock{D}'$:
+\item \tParty{E} transfers the encrypted data chunks $\Lock{D}$ directly to the buyer. \tParty{B} computes the Merkle root $R'$ and the size $s'$ of the received data $\Lock{D}'$:
 \begin{equation}
 R' = \Root(\MerkleTree(\Lock{D}'))
 \end{equation}
 \begin{equation}
 s' = \SizeOf(\Lock{D}')
 \end{equation}
-\item \tParty{B} makes a transaction with a receipt $\Sign_\Party{B}(\{R',\ s'\})$ to the contract address. The parties can proceed if and only if the following is true:
+\item \label{step:buyers-receipt} \tParty{B} makes a transaction with a receipt $\Sign_\Party{B}(\{R',\ s'\})$ to the contract address. The parties can proceed if and only if the following is true:
 \begin{equation}
 (R' = R)\ \land\ (s' = s)
 \end{equation}
 Otherwise, the protocol halts.
-\item \tParty{E} sends $\Sign_\Party{E}(\Encrypt_\Party{B}(k))$ to the contract.
-\item \tParty{B} decyphers and checks the received data. In case some data chunk $e_i \in \Lock{D}$ is invalid, \tParty{B}~sends a transaction with~$\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D}))\}$ to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$.  She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
+\item \label{step:secret-sharing} \tParty{E} sends $\Sign_\Party{E}(\Encrypt_\Party{B}(k))$ to the contract.
+\item \label{step:arbitrage} \tParty{B} decyphers and checks the received data.
+\begin{itemize}
+\item In case some data chunk $e_i \in \Lock{D}$ is invalid, \tParty{B}~sends $\Sign_\Party{B}(\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D}))\})$ to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$. She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
+\item In case chunks $d_i$ and $d_j$ have duplicate entries, \tParty{B} sends $$\Sign_\Party{B}(\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\ e_j,\ \Path(e_j,\ \MerkleTree(\Lock{D}))\})$$ to the contract. The contract checks whether $d_i$ and $d_j$ do indeed have duplicate entries and blames~\tParty{E} for cheating if it is true.
+\end{itemize}
 \end{enumerate}
 
-The on-chain communications of the parties (steps 2, 4, 5, 6) are bounded by a time frame $\tau$. In order for the transaction to be valid, the time $\Delta t$ passed since the previous on-chain step has to be less than or equal to $\tau$. In case $\Delta t > \tau$ the communication between the parties is considered over, and one of the protocol exit points is automatically triggered. The protocol exit points are described in detail in Table~\ref{table:data-disclosure-exit-points}.
+The contract considers the data chunk $d_i$ valid if and only if:
+\begin{enumerate}
+\item All the transactions in $d_i$ are unique.
+\item All the transactions in $d_i$ have valid proofs of existence (like described in Section \ref{sec:fair-cv}).
+\item All the transactions in $d_i$ make the predicate $Q$ true.
+\end{enumerate}
+
+The on-chain communications of the parties (steps \ref{step:seller-deposits-money}, \ref{step:buyers-receipt}, \ref{step:secret-sharing}, \ref{step:arbitrage}) are bounded by a time frame $\tau$. In order for the transaction to be valid, the time $\Delta t$ passed since the previous on-chain step has to be less than or equal to $\tau$. In case $\Delta t > \tau$ the communication between the parties is considered over, and one of the protocol exit points is automatically triggered. The protocol exit points are described in detail in Table~\ref{table:data-disclosure-exit-points}.
 
 \begin{table}[ht]
   \caption{Data disclosure protocol exit points}
@@ -63,12 +71,31 @@ The on-chain communications of the parties (steps 2, 4, 5, 6) are bounded by a t
     \hline
     \textbf{Condition} & \textbf{Step} & \textbf{Consequence}\\ \hline
     \endhead
-    $\Delta t > \tau$ & 2 & \multirow{4}{=}{\tParty{B}, \tParty{E} get their money back because \tParty{E}~wasn't able to correctly transfer the data to~\tParty{B}.} \\ \cline{1-2}
-    $\Delta t > \tau$ & 4 & \\ \cline{1-2}
-    $R' \neq R$ & 4 & \\ \cline{1-2}
-    $s' \neq s$ & 4 & \\ \hline
-    $\Delta t > \tau$ & 5 & \tParty{B}, \tParty{E} get their money back because \tParty{B}~has received the encrypted data, but \tParty{E}~nas not been able to share the key $k$ for it \\ \hline
-    $\Delta t > \tau$ & 6 & \tParty{E} gets $C_E$ and $C_D$: \tParty{E} correctly shared data to \tParty{B} \\ \hline
+    $\Delta t > \tau$ & \ref{step:seller-deposits-money} & \multirow{4}{=}{\tParty{B}, \tParty{E} get their money back because \tParty{E}~wasn't able to correctly transfer the data to~\tParty{B}.} \\ \cline{1-2}
+    $\Delta t > \tau$ & \ref{step:buyers-receipt} & \\ \cline{1-2}
+    $R' \neq R$ & \ref{step:buyers-receipt} & \\ \cline{1-2}
+    $s' \neq s$ & \ref{step:buyers-receipt} & \\ \hline
+    $\Delta t > \tau$ & \ref{step:secret-sharing} & \tParty{B}, \tParty{E} get their money back because \tParty{B}~has received the encrypted data, but \tParty{E}~nas not been able to share the key $k$ for it \\ \hline
+    $\Delta t > \tau$ & \ref{step:arbitrage} & \tParty{E} gets $C_E$ and $C_D$: \tParty{E} correctly shared data to \tParty{B} \\ \hline
     \multicolumn{2}{|c|}{Protocol finishes} & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses her security deposit $C_E$. Otherwise, \tParty{E} receives both $C_E$ and $C_D$. \\ \hline
   \end{longtabu}
 \end{table}
+
+The proposed algorithm (though with some modifications) can be applied to object disclosure and personalization requests. Here we define the modifications of the protocol so that it can support these request types:
+\begin{enumerate}
+%\item Object disclosure
+%\begin{itemize}
+%\item $Q: \Root(\MerkleTree(\mathit{Object}))$ -- query by the object hash.
+%\item $D: \mathit{Object}$ -- the data being revealed is an \textit{object:} uncategorized blob of data relevant to a particular transaction.
+%\item Validation: check the Merkle root of the object. In case the Merkle root does not match, the buyer sends a chunk with proofs to the contract.
+%\item In case of the successful trade the student receives a part of money.
+%\end{itemize}
+
+\item Personal data disclosure
+\begin{itemize}
+\item $Q: \PubKey{S}$ -- query by the public key of a student.
+\item $D: \Sign_\Party{S}(\mathit{personalInfo})$ -- the data being revealed is the personal information signed by the student.
+\item Validation: the buyer checks the student's signature. In case of a dispute the contract checks the signature.
+\item In case of the successful trade the student receives a part of money.
+\end{itemize}
+\end{enumerate}

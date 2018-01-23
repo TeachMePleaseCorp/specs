@@ -20,7 +20,7 @@ assignments of her students, and also receives all the revenue for trading this
 data. Some small educators might find this option unacceptable.
 
 Therefore, we propose a mechanism of \textit{educator pools}, which allow small
-educators to delegate block proof publishing to a third party in a trustless
+educators to delegate block proof publishing to a third party in a partially trustless
 way.
 
 \begin{figure}[ht]
@@ -30,8 +30,6 @@ way.
     manager}
   \label{fig:pools:lvl2block}
 \end{figure}
-
-\subsubsection{General approach}
 
 The idea is the following:
 
@@ -70,6 +68,20 @@ $\alpha_{pool} N - \alpha_{pub}$ coins, while every Educator in pool pays less
 for the block header publishing then if published directly to Witnesses.
 Therefore, every participant has an incentive to remain in the pool.
 
-\subsubsection{Trustless payments to a pool manager}
+Note that a small Educator participating in the pool should slightly change the
+structure of his own chain. Every block header should contain a hash of previous
+one (as described in Section~\ref{sec:priv-chain}), but blocks of an Educator
+participating in the pool are published only as part of second-level pooled
+block. So the educator's block header should contain a header hash of a
+second-level block containing previous first-level block in educator's chain
+instead of header hash of previous first-level block.
 
-TBD
+We don't yet provide a fully trustless solution for pooling. Small Educators
+should trust a pool manager to provide correct second-level proofs of their
+blocks, and in theory an adversarial pool manager may cheat on Educators by not
+including their block headers in a published second-level block after she
+received the money. However, we assume that deceiving the small educators and
+losing them as a long-term clients is far less profitable than being honest.
+Nevertheless, we are currently working on a fully trustless pooling protocol
+based on a smart contract which ensures that a pool manager cannot deceive any
+Educator.

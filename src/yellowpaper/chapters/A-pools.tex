@@ -25,30 +25,10 @@ way.
 
 \begin{figure}[ht]
   \centering
-  \begin{tikzpicture}
-    [ edge from parent/.style={<-, draw},
-      root-node/.style = {
-        shape=rectangle, rounded corners,
-        draw, align=center
-      },
-      sub-node/.style = {
-        shape=rectangle, rounded corners,
-        draw, align=center, fill=black!10
-      },
-      txt/.style = {}]
-      \node [root-node] {$h_{root}$, $s_{root}$}
-      child { node [root-node] {$h_l$, $s_l$}
-        child { node [txt] {\ldots}
-          child { node [root-node] {$h_{root_1}$, $s_{root_1}$} } }
-        child { node [txt] {\ldots}
-          child { node [root-node] {$h_{root_1}$, $s_{root_1}$} } } }
-      child { node [root-node] {$h_r$, $s_r$}
-        child { node [txt] {\ldots} }
-        child { node [txt] {\ldots} } };
-  \end{tikzpicture}
-  \label{apx:pools:lvl2block}
-  \caption{Two-level hierarchical Merkle tree for a block published by a pool
+  \includegraphics[width=\textwidth]{pool-hierarchical-mtree}
+  \caption{Two-level hierarchical sized Merkle tree for a block published by a pool
     manager}
+  \label{fig:pools:lvl2block}
 \end{figure}
 
 \subsubsection{General approach}
@@ -65,7 +45,7 @@ The idea is the following:
   threshold $K_{min}$.
 \item Then pool manager builds a sized Merkle tree over the list of received
   Educator's block headers, forming a \textit{second-level block}
-  (\ref{apx:pools:lvl2block}). The header of second-level block gets published
+  (Fig.~\ref{fig:pools:lvl2block}). The header of second-level block gets published
   on the public blockchain.
 \item After constructing a second-level block, pool manager sends each of the
   small Educators a path to their block headers in a second-level sized Merkle tree.

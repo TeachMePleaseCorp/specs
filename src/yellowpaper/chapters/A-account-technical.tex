@@ -29,9 +29,9 @@ Any interaction with account is done via Plutus code.
 
 The evaluation cost is collected and summed into Fee.
 
-"Sandbox run" can be performed, to check costs and programming errors.
+``Sandbox run'' can be performed, to check costs and programming errors.
 
-We will call natively-implemented functions to be called from Plutus Core "NIFs".
+We will call natively-implemented functions to be called from Plutus Core ``NIFs''.
 
 Each atomic step of execution has an invocation cost.
 
@@ -45,16 +45,16 @@ This will allow us to reason about security/validity of operations with more con
 
 \subsection{Transaction}
 
-We will cover "simple money transfer" and "data disclosure" transactions in this section.
+We will cover ``simple money transfer'' and ``data disclosure'' transactions in this section.
 
-"Simple money transfer" transactions will be implemented as transactions with empty "function call" field.
+``Simple money transfer'' transactions will be implemented as transactions with empty ``function call'' field.
 
 Transferral transaction must contain:
 \begin{itemize}
   \item Sender signature;
   \item Receiver signature;
   \item Amount and kind of funds transferred (must be non-zero overall);
-  \item "Nonce" to prevent double-invocation.
+  \item ``Nonce'' to prevent double-invocation.
   \item (Optional) textual message for the receiver;
   \item (Optional) function call to be invoked upon transaction approval.
   \item Digest of all other fields, encrypted with Sender private key.
@@ -87,9 +87,9 @@ We assume that we have 2 sides:
   \item Seller.
 \end{itemize}
 
-"Gas" below is the estimation of the operation cost. The name and idea is taken from Etherium.
-"Fee" is a forfeit to either side trying to deceive opponent.
-"Sum" is the price of data to be sold.
+``Gas'' below is the estimation of the operation cost. The name and idea is taken from Etherium.
+``Fee'' is a forfeit to either side trying to deceive opponent.
+``Sum'' is the price of data to be sold.
 
 Robot would work as follows. Seller invokes a transaction which runs code directly on his account, that constructs a robot with following exported methods
 
@@ -213,7 +213,7 @@ The trades will go as follows:
       \end{itemize}
     \item Buyer tries to blame Seller with valid data:
       \begin{itemize}
-        \item Buyer selects the block to call "invalid".
+        \item Buyer selects the block to call ``invalid''.
 
         \item Then she invokes \verb|reject(unencrypted-block, proof)| to start arbitration.
 

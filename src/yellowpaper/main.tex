@@ -2,7 +2,7 @@
 
 %% Language and font encodings
 \usepackage[english]{babel}
-\usepackage[utf8x]{inputenc}
+\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
 %% Sets page size and margins
@@ -12,6 +12,7 @@
 \usepackage{amsmath}
 \usepackage{calc}
 \usepackage{graphicx}
+\usepackage{tikz}
 \usepackage{enumitem}
 \usepackage{csquotes}
 \usepackage{longtable, tabu}
@@ -20,19 +21,24 @@
 \usepackage[blocks]{authblk}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 \usepackage{footmisc}
+\usepackage[backend=biber]{biblatex}
+
 \graphicspath{{images/}}
+\addbibresource{references.bib}
 
 \title{Disciplina: Blockchain for Education}
 \author[1]{Kirill Kuvshinov}
-\author[2]{Jonn Mostovoy}
-\author[3]{Ilya Nikiforov}
-\author[4]{Kirill Andreev}
+\author[2]{Ilya Nikiforov}
+\author[3]{Jonn Mostovoy}
+\author[4]{Dmitry Mukhutdinov}
+\author[5]{Kirill Andreev}
+\author[6]{Vladislav Podtelkin}
 
-\affil[1]{Teach Me Please, \href{https://teachmeplease.com}{\texttt{https://teachmeplease.com}}}
-\affil[2]{Serokell, \href{https://serokell.io}{\texttt{https://serokell.io}}}
+\affil[1, 2]{Teach Me Please, \href{https://teachmeplease.com}{\texttt{https://teachmeplease.com}}}
+\affil[3, 4, 5, 6]{Serokell, \href{https://serokell.io}{\texttt{https://serokell.io}}}
 
 \date{%
-Version 0.5.1\\%
+Version 0.5.2\\%
 \today
 }
 
@@ -60,16 +66,24 @@ Version 0.5.1\\%
 \input{chapters/03-implementation}
 \input{chapters/04-future-work}
 \input{chapters/05-conclusion}
+
+\printbibliography
+
 \pagebreak
+
+\appendix
+\section{Appendix}
+
 \input{chapters/A-notations}
-\input{chapters/A-data-object-storage}
+%% \input{chapters/A-ratings}
+%% \input{chapters/A-data-object-storage}
 \input{chapters/A-pools}
 \input{chapters/A-account-technical}
 
 %\bibliographystyle{plain}
 %\bibliographystyle{alpha}
 %\bibliographystyle{unsrt}
-\bibliographystyle{abbrv}
-\bibliography{references}
+%\bibliographystyle{abbrv}
+%\bibliography{references}
 
 \end{document}

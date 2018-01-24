@@ -37,14 +37,21 @@ The idea is the following:
 \item Every small Educator still maintains her own small private chain
 \item When a small Educator forms a block in her private chain, she sends the
   block header to a third party called \textit{pool manager} instead of
-  publishing it directly to Witnesses.
+  publishing it directly to Witnesses. Another difference is that Educator
+  should also send a separate signature for her \textit{ATG delta} (if it's not
+  empty).
 \item A \textit{pool manager} collects block headers from Educators until
   total number of transactions in all Educator's blocks is more than some
   threshold $K_{min}$.
 \item Then pool manager builds a sized Merkle tree over the list of received
   Educator's block headers, forming a \textit{second-level block}
   (Fig.~\ref{fig:pools:lvl2block}). The header of second-level block gets published
-  on the public blockchain.
+  on the public blockchain. Instead of containing a single \textit{ATG delta},
+  the header of this second-level block contains a list of separate signed
+  \textit{ATG deltas} of small educators. We assume that this approach wouldn
+  not create a problem of oversized block headers because Educators don't
+  typically create and close courses very often, and an average number of ATG
+  deltas in every single block header will stay small.
 \item After constructing a second-level block, pool manager sends each of the
   small Educators a path to their block headers in a second-level sized Merkle tree.
 \item Having this path, each Educator can construct a publicly verifiable proof

@@ -26,14 +26,14 @@ R_0 = \Root(\MerkleTree(D)) = \Root(\MerkleTree(\{\ d_i\ \forall i\}))
 
 \item \tParty{E} generates a symmetric key $k$ and encrypts each~$d_i$ with $k$. Then she makes an array of encrypted chunks:
 \begin{equation}
-\Lock{E} = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
+\Lock{D} = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
 \end{equation}
 
 \item \tParty{E} computes the size of the encrypted answer $s = \SizeOf(\Lock{D})$, the cost of this data $C_D \sim s$, and the Merkle root of the data $R = \Root(\MerkleTree(\Lock{D}))$.
 
 \item \tParty{E} sends $\Sign_\Party{E}(C_D,\ s,\ R,\ \Hash(Q))$ directly to the buyer.
 
-\item If buyer agrees to pay the price, she generates a new keypair ($\PubKey{B},\ \SecretKey{B}$). Then she initializes the contract with data provided by seller, search query $Q$, its own temporary trade public key $\PubKey{B}$ and $C_D$ amount of money.
+\item If buyer agrees to pay the price, she generates a new keypair ($\PubKey{B},\ \SecretKey{B}$). Then she initializes the contract with the data provided by the Seller, search query $Q$, its own temporary trade public key $\PubKey{B}$ and $C_D$ amount of money.
 
 \item \label{step:seller-deposits-money} If \tParty{E} agrees to proceed, she sends a predefined amount of money $C_E$ to the contract address. $C_E$ is a security deposit: if \tParty{E} tries to cheat, she would lose this money.
 

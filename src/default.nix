@@ -6,6 +6,8 @@ with import <nixpkgs> {}; {
         inherit (texlive) 
           scheme-small
           biber
+          bbm
+          bbm-macros
           collection-langcyrillic
           csquotes
           tabu

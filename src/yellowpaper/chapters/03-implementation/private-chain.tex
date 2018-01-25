@@ -95,7 +95,7 @@ $\alpha_{pub}$ and $\beta_{pub}$ are parameters of the network -- a small
 constant fee and a linear price coefficient accordingly.
 
 From the description above we can conclude that an educator may have an incentive to lie about the size of the tree. To achieve the ability to prove the number of transactions in the Merkle tree,
-we will store the size of the subtree with the hash in each node (as shown in \ref{fig:merkle-tree}). So every transaction disclosure will also verify the size. If an educator publishes digest of the tree with the wrong size, any transaction won't pass validation.
+we will store the size of the subtree with the hash in each node (as shown in \ref{fig:merkle-tree}). So every transaction disclosure will also verify the size. Suppose that an Educator published a header hash with a wrong size, then every student which is collecting his own fair CV will see that an Educator deceives him, and moreover not a single data-disclosure deal would proceed.
 
 Let's look at the example from the figure \ref{fig:merkle-tree}. Suppose we need to disclose $data[2]$. The path to the node H colored in gray. The proof nodes colored in yellow. So the size of the tree is $$C.size+D.size+I.size+1=5$$
 

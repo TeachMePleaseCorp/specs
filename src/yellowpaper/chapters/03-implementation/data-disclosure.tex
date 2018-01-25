@@ -15,15 +15,18 @@ The process of data disclosure involves direct communication between a particula
 The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
 \begin{enumerate}
 \item The buyer \tParty{B} sends a signed search query $\Sign_\Party{B}(Q)$ directly to the seller \tParty{E}.
-\item Let $D$ be a set of authenticated transactions relevant for the query $Q$. \tParty{E} divides~$D$ into $N$ chunks of size no more than 1~KiB:
+\item Let $D$ be a set of authenticated transactions relevant for the query $Q$. \tParty{E} divides~$D$ into $N$ chunks of size no more than 1~KiB and computes a Merkle root of the plain data chunks:
 
 \begin{equation}
 D = \Concat_{i=1}^N d_i, \quad \SizeOf(d_i) \leq 1~\mathrm{KiB}
 \end{equation}
+\begin{equation}
+R_0 = \Root(\MerkleTree(D)) = \Root(\MerkleTree(\{\ d_i\ \forall i\}))
+\end{equation}
 
 \item \tParty{E} generates a symmetric key $k$ and encrypts each~$d_i$ with $k$. Then she makes an array of encrypted chunks:
 \begin{equation}
-\Lock{D} = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
+\Lock{E} = \{ \Encrypt_\Key{k}(d_1),\ \Encrypt_\Key{k}(d_2),\ ...,\ \Encrypt_\Key{k}(d_N) \}
 \end{equation}
 
 \item \tParty{E} computes the size of the encrypted answer $s = \SizeOf(\Lock{D})$, the cost of this data $C_D \sim s$, and the Merkle root of the data $R = \Root(\MerkleTree(\Lock{D}))$.
@@ -48,10 +51,23 @@ s' = \SizeOf(\Lock{D}')
 Otherwise, the protocol halts.
 \item \label{step:secret-sharing} \tParty{E} sends $\Sign_\Party{E}(\Encrypt_\Party{B}(k))$ to the contract.
 \item \label{step:arbitrage} \tParty{B} decyphers and checks the received data.
-\begin{itemize}
-\item In case some data chunk $e_i \in \Lock{D}$ is invalid, \tParty{B}~sends $\Sign_\Party{B}(\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D}))\})$ to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$. She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
-\item In case chunks $d_i$ and $d_j$ have duplicate entries, \tParty{B} sends $$\Sign_\Party{B}(\{\SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\ e_j,\ \Path(e_j,\ \MerkleTree(\Lock{D}))\})$$ to the contract. The contract checks whether $d_i$ and $d_j$ do indeed have duplicate entries and blames~\tParty{E} for cheating if it is true.
-\end{itemize}
+
+  \begin{itemize}
+    \item In case some data chunk $e_i \in \Lock{D}$ is invalid, \tParty{B}~sends
+    \begin{equation*}
+      \Sign_\Party{B}(\{\ \SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\ \Path(d_i,\ \MerkleTree(D))\ \})
+    \end{equation*}
+    to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$. She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
+
+    \item In case chunks $d_i$ and $d_j$ have duplicate entries, \tParty{B} sends
+    \begin{equation*}
+      \begin{split}
+        \Sign_\Party{B}(\{\ \SecretKey{B}, & \ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\ \Path(d_i,\ \MerkleTree(D)),\\
+         & \ e_j,\ \Path(e_j,\ \MerkleTree(\Lock{D})),\ \Path(d_j,\ \MerkleTree(D))\ \})
+      \end{split}
+    \end{equation*}
+    to the contract. The contract checks whether $d_i$ and $d_j$ do indeed have duplicate entries and blames~\tParty{E} for cheating if it is true.
+  \end{itemize}
 \end{enumerate}
 
 The contract considers the data chunk $d_i$ valid if and only if:
@@ -71,7 +87,10 @@ The on-chain communications of the parties (steps \ref{step:seller-deposits-mone
     \hline
     \textbf{Condition} & \textbf{Step} & \textbf{Consequence}\\ \hline
     \endhead
-    $\Delta t > \tau$ & \ref{step:seller-deposits-money} & \multirow{4}{=}{\tParty{B}, \tParty{E} get their money back because \tParty{E}~wasn't able to correctly transfer the data to~\tParty{B}.} \\ \cline{1-2}
+
+    $\Delta t > \tau$ & \ref{step:seller-deposits-money} & \multirow{4}{*}{
+      \parbox{\linewidth}{\tParty{B}, \tParty{E} get their money back because \tParty{E}~wasn't able to correctly transfer the data to~\tParty{B}.}
+    } \\ \cline{1-2}
     $\Delta t > \tau$ & \ref{step:buyers-receipt} & \\ \cline{1-2}
     $R' \neq R$ & \ref{step:buyers-receipt} & \\ \cline{1-2}
     $s' \neq s$ & \ref{step:buyers-receipt} & \\ \hline
@@ -83,19 +102,19 @@ The on-chain communications of the parties (steps \ref{step:seller-deposits-mone
 
 The proposed algorithm (though with some modifications) can be applied to object disclosure and personalization requests. Here we define the modifications of the protocol so that it can support these request types:
 \begin{enumerate}
-%\item Object disclosure
-%\begin{itemize}
-%\item $Q: \Root(\MerkleTree(\mathit{Object}))$ -- query by the object hash.
-%\item $D: \mathit{Object}$ -- the data being revealed is an \textit{object:} uncategorized blob of data relevant to a particular transaction.
-%\item Validation: check the Merkle root of the object. In case the Merkle root does not match, the buyer sends a chunk with proofs to the contract.
-%\item In case of the successful trade the student receives a part of money.
-%\end{itemize}
+  \item Object disclosure
+    \begin{itemize}
+      \item $Q: \Root(\MerkleTree(\mathit{Object}))$ -- query by the object hash.
+      \item $D: \mathit{Object}$ -- the data being revealed is an \textit{object:} uncategorized blob of data relevant to a particular transaction.
+      \item Validation: check the Merkle root of the object. In case the Merkle root does not match, the buyer sends a chunk with proofs to the contract.
+      \item In case of the successful trade the student receives a part of money.
+    \end{itemize}
 
-\item Personal data disclosure
-\begin{itemize}
-\item $Q: \PubKey{S}$ -- query by the public key of a student.
-\item $D: \Sign_\Party{S}(\mathit{personalInfo})$ -- the data being revealed is the personal information signed by the student.
-\item Validation: the buyer checks the student's signature. In case of a dispute the contract checks the signature.
-\item In case of the successful trade the student receives a part of money.
-\end{itemize}
+  \item Personal data disclosure
+    \begin{itemize}
+      \item $Q: \PubKey{S}$ -- query by the public key of a student.
+      \item $D: \Sign_\Party{S}(\mathit{personalInfo})$ -- the data being revealed is the personal information signed by the student.
+      \item Validation: the buyer checks the student's signature. In case of a dispute the contract checks the signature.
+      \item In case of the successful trade the student receives a part of money.
+    \end{itemize}
 \end{enumerate}

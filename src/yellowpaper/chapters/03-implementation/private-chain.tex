@@ -66,7 +66,10 @@ predicate.
 The private block header consists of the transactions Merkle root along with the
 previous block hash and the information on the Activity Type Graph modifications
 (ATG delta). The \textit{ATG delta} part allows the Educators to inform the
-Witnesses of the modifications to the courses they teach.
+Witnesses of the modifications to the courses they teach. The ATG delta is a
+pair of sets $\Delta_A = (\Delta_{A+}, \Delta_{A-})$, where $\Delta_{A+}$ is a
+set of subjects for which Educator starts a course and $\Delta_{A-}$ is a set of
+subjects for which Educator closes a course.
 
 An Educator collects private transactions into the blocks with no more than $K_{max}$
 transactions per each block. After that, an Educator submits signed block header

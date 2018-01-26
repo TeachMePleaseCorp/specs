@@ -57,7 +57,7 @@ Otherwise, the protocol halts.
     \begin{equation*}
       \Sign_\Party{B}(\{\ \SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\ \Path(d_i,\ \MerkleTree(D))\ \})
     \end{equation*}
-    to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$. She also shares proof that~$e_i$ was indeed part of a  Mekle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
+    to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$. She also shares proof that~$e_i$ was indeed part of a  Merkle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
 
     \item In case chunks $d_i$ and $d_j$ have duplicate entries, \tParty{B} sends
     \begin{equation*}

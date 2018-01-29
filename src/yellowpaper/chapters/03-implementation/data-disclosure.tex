@@ -1,10 +1,9 @@
 \subsection{Data Disclosure}
 \label{sec:DataDisclosure}
 
-Disciplina architecture supports three types of data disclosure requests:
+Disciplina architecture supports two types of data disclosure requests:
 \begin{enumerate}
   \item Request for a set of authenticated private transactions satisfying some predicate (see details in Section \ref{sec:search-queries})
-  \item Request for personalization
   \item Request for object disclosure
 \end{enumerate}
 
@@ -15,13 +14,9 @@ The process of data disclosure involves direct communication between a particula
 The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
 \begin{enumerate}
 \item The buyer \tParty{B} sends a signed search query $\Sign_\Party{B}(Q)$ directly to the seller \tParty{E}.
-\item Let $D$ be a set of authenticated transactions relevant for the query $Q$. \tParty{E} divides~$D$ into $N$ chunks of size no more than 1~KiB and computes a Merkle root of the plain data chunks:
-
+\item Let $D$ be a set of authenticated transactions relevant for the query $Q$. \tParty{E} divides~$D$ into $N$ chunks. When disclosing private transaction, one chunk $d_i$ is a transaction with proofs that it was included in a certain private block:
 \begin{equation}
-D = \Concat_{i=1}^N d_i, \quad \SizeOf(d_i) \leq 1~\mathrm{KiB}
-\end{equation}
-\begin{equation}
-R_0 = \Root(\MerkleTree(D)) = \Root(\MerkleTree(\{\ d_i\ \forall i\}))
+d_i: (T_{priv}^i, P_{priv}^i, H^{(i)}, P_{pub}^i)
 \end{equation}
 
 \item \tParty{E} generates a symmetric key $k$ and encrypts each~$d_i$ with $k$. Then she makes an array of encrypted chunks:
@@ -53,17 +48,18 @@ Otherwise, the protocol halts.
 \item \label{step:arbitrage} \tParty{B} decyphers and checks the received data.
 
   \begin{itemize}
+    \item In case all the data is correct the Buyer sends a signed accept to the contract.
     \item In case some data chunk $e_i \in \Lock{D}$ is invalid, \tParty{B}~sends
     \begin{equation*}
-      \Sign_\Party{B}(\{\ \SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\ \Path(d_i,\ \MerkleTree(D))\ \})
+      \Sign_\Party{B}(\{\ \SecretKey{B},\ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D}))\ \})
     \end{equation*}
     to the contract. By doing so, \tParty{B}~reveals the data chunk~$d_i$ corresponding to the encrypted chunk~$e_i$. She also shares proof that~$e_i$ was indeed part of a  Merkle tree with root~$R$. The contract checks the validity of $d_i$ and decides whether \tParty{B}~has rightfully accused~\tParty{E} of cheating.
 
     \item In case chunks $d_i$ and $d_j$ have duplicate entries, \tParty{B} sends
     \begin{equation*}
       \begin{split}
-        \Sign_\Party{B}(\{\ \SecretKey{B}, & \ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\ \Path(d_i,\ \MerkleTree(D)),\\
-         & \ e_j,\ \Path(e_j,\ \MerkleTree(\Lock{D})),\ \Path(d_j,\ \MerkleTree(D))\ \})
+        \Sign_\Party{B}(\{\ \SecretKey{B}, & \ e_i,\ \Path(e_i,\ \MerkleTree(\Lock{D})),\\
+         & \ e_j,\ \Path(e_j,\ \MerkleTree(\Lock{D}))\ \})
       \end{split}
     \end{equation*}
     to the contract. The contract checks whether $d_i$ and $d_j$ do indeed have duplicate entries and blames~\tParty{E} for cheating if it is true.
@@ -96,25 +92,13 @@ The on-chain communications of the parties (steps \ref{step:seller-deposits-mone
     $s' \neq s$ & \ref{step:buyers-receipt} & \\ \hline
     $\Delta t > \tau$ & \ref{step:secret-sharing} & \tParty{B}, \tParty{E} get their money back because \tParty{B}~has received the encrypted data, but \tParty{E}~nas not been able to share the key $k$ for it \\ \hline
     $\Delta t > \tau$ & \ref{step:arbitrage} & \tParty{E} gets $C_E$ and $C_D$: \tParty{E} correctly shared data to \tParty{B} \\ \hline
-    \multicolumn{2}{|c|}{Protocol finishes} & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses her security deposit $C_E$. Otherwise, \tParty{E} receives both $C_E$ and $C_D$. \\ \hline
+    \multicolumn{2}{|c|}{Protocol finishes with reject} & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses her security deposit $C_E$. Otherwise, \tParty{E} receives both $C_E$ and $C_D$. \\ \hline
   \end{longtabu}
 \end{table}
 
-The proposed algorithm (though with some modifications) can be applied to object disclosure and personalization requests. Here we define the modifications of the protocol so that it can support these request types:
-\begin{enumerate}
-  \item Object disclosure
-    \begin{itemize}
-      \item $Q: \Root(\MerkleTree(\mathit{Object}))$ -- query by the object hash.
-      \item $D: \mathit{Object}$ -- the data being revealed is an \textit{object:} uncategorized blob of data relevant to a particular transaction.
-      \item Validation: check the Merkle root of the object. In case the Merkle root does not match, the buyer sends a chunk with proofs to the contract.
-      \item In case of the successful trade the student receives a part of money.
-    \end{itemize}
-
-  \item Personal data disclosure
-    \begin{itemize}
-      \item $Q: \PubKey{S}$ -- query by the public key of a student.
-      \item $D: \Sign_\Party{S}(\mathit{personalInfo})$ -- the data being revealed is the personal information signed by the student.
-      \item Validation: the buyer checks the student's signature. In case of a dispute the contract checks the signature.
-      \item In case of the successful trade the student receives a part of money.
-    \end{itemize}
-\end{enumerate}
+The proposed algorithm (though with some modifications) can be applied to object disclosure and requests. Here we define these modifications:
+\begin{itemize}
+  \item $Q: \Root(\MerkleTree(\mathit{Object}))$ -- query by the object hash.
+  \item $d_i: (\mathit{chunk},\ \Path(\mathit{chunk},\ \MerkleTree(\mathit{Object}))$ -- the data being revealed is an \textit{object:} uncategorized blob of data relevant to a particular transaction. The object is split into chunks of size no more than 1~KiB and transferred along with proofs.
+  \item Validation: check that a chunk is indeed a part of the object with root $Q$.
+\end{itemize}

@@ -11,7 +11,7 @@ Here we describe a protocol of fair data trade between the Educator as a seller 
 
 The process of data disclosure involves direct communication between a particular Educator~\tParty{E}, willing to disclose a part of the data, and an interested party~\tParty{B} (e. g. a recruiter), willing to pay for this data. Suppose \tParty{E} has some data~$D$. In case of private transactions $D$ is a set of \textit{authenticated transactions}, i.~e. tuples $(T_{priv}, P_{priv}, H, P_{pub})$. As shown in Section~\ref{sec:fair-cv} this data along with the educator's public key is enough to prove that a certain transaction $T_{priv}$ actually occurred in some private block of the given educator.
 
-The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract are appended to $L$.
+The protocol fairness is guaranteed by a contract on the public chain. The contract is able to hold money and is stateful: it is capable of storing a log $L$ with data. All the data that parties send to the contract is appended to $L$.
 \begin{enumerate}
 \item The buyer \tParty{B} sends a signed search query $\Sign_\Party{B}(Q)$ directly to the seller \tParty{E}.
 \item Let $D$ be a set of authenticated transactions relevant for the query $Q$. \tParty{E} divides~$D$ into $N$ chunks. When disclosing private transaction, one chunk $d_i$ is a transaction with proofs that it was included in a certain private block:

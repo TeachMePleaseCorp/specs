@@ -94,6 +94,7 @@ Robot would work as follows. The Buyer invokes a transaction which runs code dir
 \begin{itemize}
   \item \begin{verbatim} start-trade(); \end{verbatim}
   \item \begin{verbatim} accept-encrypted(encrypted-mroot, size); \end{verbatim}
+  \item \begin{verbatim} send-encrypted-secret(encrypted-secret); \end{verbatim}
   \item \begin{verbatim} handshake(); \end{verbatim}
   \item \begin{verbatim} reject(sk, block, proof-enc, proof-plain); \end{verbatim}
   \item \begin{verbatim} cancel(), \end{verbatim}
@@ -105,7 +106,6 @@ This robot is initialized with the following data:
   \item Cost in tokens;
   \item Size of the encrypted data;
   \item Merkle tree root of encrypted data;
-  \item Merkle tree root of plain data;
   \item Timeout, after which the account is destroyed;
   \item Sink, a person whom the remaining money will be send on timeout;
   \item Destructor, a procedure to invoke on timeout.
@@ -125,43 +125,47 @@ Here is the state machine of that Robot-account:
       IF encrypted Merkle root and size are the same as initially set in Robot state,
         GOTO 2
       ELSE
-        GOTO 7
+        GOTO 8
 
     Timeout!
-      GOTO 7
+      GOTO 8
 
-  (2) Data was transferred. Off the band, the symmetric key is sent.
-    "reject(sk, block, encrypted-proof, plain-proof)" from Buyer
-      GOTO 3
+  (2) Data was transferred. Seller encrypts a session key with the Buyer's public key.
+    "send-encrypted-secret(encrypted-secret)" from Seller
+    Notify Buyer
 
-    "handshake" from Buyer
+  (3) Off the band, the symmetric key is sent.
+    "reject(sk, block, encrypted-proof)" from Buyer
       GOTO 4
 
+    "handshake" from Buyer
+      GOTO 5
+
     Timeout!
-      GOTO 5
-
-  (3) Arbitration.
-    The robot performs check.
-    If it finds that Buyer is right (block invalidates either of proofs OR the predicate fails),
       GOTO 6
+
+  (4) Arbitration.
+    The robot performs check.
+    If it finds that Buyer is right (block invalidates proofs OR the predicate fails),
+      GOTO 7
     else if Seller is right
-      GOTO 5
+      GOTO 6
 
-  (4) Cleanup I.
+  (5) Cleanup I.
     (Sum + Fee) is sent to Seller.
-    GOTO 6
+    GOTO 7
 
-  (5) Cleanup II.
+  (6) Cleanup II.
     All remaining money is sent to Seller.
     The account is closed.
 
-  (6) Cleanup III.
+  (7) Cleanup III.
     All remaining money is sent to Buyer.
     The account is closed.
 
-  (7) Cleanup VI.
+  (8) Cleanup VI.
     Fee is sent to Seller.
-    GOTO 6
+    GOTO 7
 
 \end{verbatim}
 
@@ -203,7 +207,7 @@ The trades will go as follows:
       \begin{itemize}
         \item Buyer finds that at least one block signature is invalid in either form.
 
-        \item She invokes \verb|reject(sk, block, encrypted-proof, plain-proof)| to start arbitration.
+        \item She invokes \verb|reject(sk, block, encrypted-proof)| to start arbitration.
 
         \item Robot checks that block falsifies proofs and that Buyer was right.
 

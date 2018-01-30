@@ -96,7 +96,7 @@ Robot would work as follows. The Buyer invokes a transaction which runs code dir
   \item \begin{verbatim} accept-encrypted(encrypted-mroot, size); \end{verbatim}
   \item \begin{verbatim} send-encrypted-secret(encrypted-secret); \end{verbatim}
   \item \begin{verbatim} handshake(); \end{verbatim}
-  \item \begin{verbatim} reject(sk, block, proof-enc, proof-plain); \end{verbatim}
+  \item \begin{verbatim} reject(sk, block, proof-enc); \end{verbatim}
   \item \begin{verbatim} cancel(), \end{verbatim}
 \end{itemize}
 carrying \verb|Sum + Fee + Gas| amount of currency and some \verb|predicate| to check the data if applicable.
@@ -175,37 +175,35 @@ Lets assume there are:
 \begin{itemize}
   \item Seller, which has declared that he has his students' Linear Algebra marks for Nov, 2018 worth 500 tokens (signed in some private Merkle tree);
   \item Buyer, which has 600 tokens available.
-  \item Robot, which is a smart account created by Seller.
+  \item Robot, which is a smart account created by the Buyer.
 \end{itemize}
 
 We will consider three cases:
 \begin{itemize}
   \item Seller sends nothing at all;
   \item Seller tried to send Buyer encrypted garbage instead of data;
-  \item Buyer tried to blame Seller in giving her invalid data with data being completely valid (in terms of signature and predicate).
+  \item Buyer tried to blame Seller in giving her invalid data with data being completely valid (in terms of proofs and predicate).
 \end{itemize}
 
 All trades will have same initial part, so we will branch when nessessary.
 The trades will go as follows:
 \begin{itemize}
-  \item (Optionally) Seller formulates a predicate to check that data corresponds its description OR uses universal truth as predicate.
-
+  \item The Buyer formulates a predicate to check that data corresponds its description OR uses universal truth as predicate.
+  \item The Buyer requests the data from the Seller.
   \item The Seller notifies the Buyer of the data price (500 tokens).
-  \item The protocol states that the Fee should be 20 tokens and the Gas costs 10 tokens.
-  \item The Buyer creates a Robot using the scheme above with 500 + 20 + 10 tokens and the predicate.
-
+  \item The Buyer creates a Robot using the scheme above with 500 tokens and the predicate.
   \item The Seller accepts the trade and sends \verb|start-trade()| to the Robot along with 20 tokens Fee.
 
   \begin{enumerate}
-    \item Seller sends badly sized data:
+    \item Seller sends badly sized data or the Merkle root of the encrypted data does not match:
       \begin{itemize}
-        \item The size of transferred data is invalid.
+        \item The size or the Merkle root of the transferred data is invalid.
         \item The trade is stalled until time is out.
         \item On timeout the trade is reverted and money is returned to Buyer.
       \end{itemize}
     \item Seller tries to send garbage or one of blocks decrypts to garbage:
       \begin{itemize}
-        \item Buyer finds that at least one block signature is invalid in either form.
+        \item Buyer finds that at least one block is invalid in either form.
 
         \item She invokes \verb|reject(sk, block, encrypted-proof)| to start arbitration.
 
@@ -221,12 +219,11 @@ The trades will go as follows:
 
         \item Robot performs \verb|check-block-and-proof(block, proof)| and finds that Buyer was not right.
 
-        \item Then it send 500 tokens to Seller and all remaining currency to Buyer.
+        \item Then it sends all 520 tokens to Seller.
       \end{itemize}
     \item Buyer receives the data and the key, but remains silent:
       \begin{itemize}
-        \item If the timeout is expired, 520 tokens are sent to Seller.
-        \item All remaining currency is sent to Buyer.
+        \item If the timeout has expired, 520 tokens are sent to Seller.
       \end{itemize}
   \end{enumerate}
 

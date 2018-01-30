@@ -68,9 +68,9 @@ Otherwise, the protocol halts.
 
 The contract considers the data chunk $d_i$ valid if and only if:
 \begin{enumerate}
-\item All the transactions in $d_i$ are unique.
-\item All the transactions in $d_i$ have valid proofs of existence (like described in Section \ref{sec:fair-cv}).
-\item All the transactions in $d_i$ make the predicate $Q$ true.
+\item The transaction in $d_i$ is unique.
+\item The transaction in $d_i$ has valid proofs of existence (like described in Section \ref{sec:fair-cv}).
+\item The transaction in $d_i$ make the predicate $Q$ true.
 \end{enumerate}
 
 The on-chain communications of the parties (steps \ref{step:seller-deposits-money}, \ref{step:buyers-receipt}, \ref{step:secret-sharing}, \ref{step:arbitrage}) are bounded by a time frame $\tau$. In order for the transaction to be valid, the time $\Delta t$ passed since the previous on-chain step has to be less than or equal to $\tau$. In case $\Delta t > \tau$ the communication between the parties is considered over, and one of the protocol exit points is automatically triggered. The protocol exit points are described in detail in Table~\ref{table:data-disclosure-exit-points}.
@@ -91,12 +91,15 @@ The on-chain communications of the parties (steps \ref{step:seller-deposits-mone
     $R' \neq R$ & \ref{step:buyers-receipt} & \\ \cline{1-2}
     $s' \neq s$ & \ref{step:buyers-receipt} & \\ \hline
     $\Delta t > \tau$ & \ref{step:secret-sharing} & \tParty{B}, \tParty{E} get their money back because \tParty{B}~has received the encrypted data, but \tParty{E}~nas not been able to share the key $k$ for it \\ \hline
-    $\Delta t > \tau$ & \ref{step:arbitrage} & \tParty{E} gets $C_E$ and $C_D$: \tParty{E} correctly shared data to \tParty{B} \\ \hline
-    \multicolumn{2}{|c|}{Protocol finishes with reject} & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses her security deposit $C_E$. Otherwise, \tParty{E} receives both $C_E$ and $C_D$. \\ \hline
+    $\Delta t > \tau$ & \ref{step:arbitrage} & \multirow{2}{*}{
+      \parbox{\linewidth}{\tParty{E} gets $C_E$ and $C_D$: \tParty{E} correctly shared data to \tParty{B}}
+    } \\ \cline{1-2}
+    \texttt{accept} from~\tParty{B} & \ref{step:arbitrage} & \\ \hline
+    \texttt{reject} from~\tParty{B} & \ref{step:arbitrage} & The dispute situation. In case \tParty{B} proofs \tParty{E} cheated, \tParty{E} loses her security deposit $C_E$. Otherwise, \tParty{E} receives both $C_E$ and $C_D$. \\ \hline
   \end{longtabu}
 \end{table}
 
-The proposed algorithm (though with some modifications) can be applied to object disclosure and requests. Here we define these modifications:
+The proposed algorithm (though with some modifications) can be applied to object disclosure requests. Here we define these modifications:
 \begin{itemize}
   \item $Q: \Root(\MerkleTree(\mathit{Object}))$ -- query by the object hash.
   \item $d_i: (\mathit{chunk},\ \Path(\mathit{chunk},\ \MerkleTree(\mathit{Object}))$ -- the data being revealed is an \textit{object:} uncategorized blob of data relevant to a particular transaction. The object is split into chunks of size no more than 1~KiB and transferred along with proofs.

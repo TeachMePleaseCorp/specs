@@ -48,7 +48,7 @@ construct a Merkle tree \cite{merkle1989certified} for these journal
 modifications:
 
 \begin{equation}
-M_{priv} = \MerkleTree(T_{priv}^i)
+M_{priv} = \MerkleTree(\{\ T_{priv}^i\ \})
 \end{equation}
 
 \begin{figure}[ht]
@@ -95,8 +95,7 @@ $\alpha_{pub}$ and $\beta_{pub}$ are parameters of the network -- a small
 constant fee and a linear price coefficient accordingly.
 
 To achieve the ability to prove the number of transactions in the Merkle tree,
-we will store it together with a hash in each node (as shown in
-\ref{fig:merkle-tree}). So every transaction disclosure will also verify the size.
+we will store it together with a hash in each node (as shown in Figure~\ref{fig:merkle-tree}). The proof will only be valid if the Educator fills in the sizes correcctly, so there is no incentive for Educators to lie about the size of the tree.
 
 We also consider a possibility for small educators to form pools and release
 blocks together in order to reduce costs for each individual educator. See

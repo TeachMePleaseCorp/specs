@@ -75,6 +75,21 @@ $\alpha_{pool} N - \alpha_{pub}$ coins, while every Educator in pool pays less
 for the block header publishing then if published directly to Witnesses.
 Therefore, every participant has an incentive to remain in the pool.
 
+However, such approach poses a threat of excessive centralization in the network
+-- it might happen so that \textit{all} educators would find it beneficial to
+join one huge pool, which will be able to provide the lowest pool fees due to
+amount of its clients. In order to avoid this, we might change the formula
+\ref{sec:priv-chain:pub-cost-eq} in a way which diminishes the profits of
+joining the pool for big educators:
+
+\begin{equation}\label{apx:pools:poosl-cost-eq-2}
+  C_{pub}(B) = \alpha_{pub} \cdot \mathbbm{1}_{\{N_{tr} < K_{tr}\}} + \beta_{pub}
+  \cdot N_{tr}
+\end{equation}
+where $K_{tr}$ is a sufficiently big threshold value. This formula ensures that
+educators which publish large blocks don't pay constant $\alpha_{pub}$ coins for
+every block, which makes it unprofitable for them to use pools.
+
 Note that a small Educator participating in the pool should slightly change the
 structure of his own chain. Every block header should contain a hash of previous
 one (as described in Section~\ref{sec:priv-chain}), but blocks of an Educator
@@ -92,3 +107,8 @@ losing them as a long-term clients is far less profitable than being honest.
 Nevertheless, we are currently working on a fully trustless pooling protocol
 based on a smart contract which ensures that a pool manager cannot deceive any
 Educator.
+
+The idea of pooling also improves the performance of the system, because it
+reduces the amount of information published on public chain. Lots of private
+block headers issued by lots of educators are replaced by few private block
+headers issued by large educators and pools.

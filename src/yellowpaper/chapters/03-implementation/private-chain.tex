@@ -48,7 +48,7 @@ construct a Merkle tree \cite{merkle1989certified} for these journal
 modifications:
 
 \begin{equation}
-M_{priv} = \MerkleTree(T_{priv}^i)
+M_{priv} = \MerkleTree(\{\ T_{priv}^i\ \})
 \end{equation}
 
 \begin{figure}[ht]
@@ -97,9 +97,11 @@ public block header be
 $\alpha_{pub}$ and $\beta_{pub}$ are parameters of the network -- a small
 constant fee and a linear price coefficient accordingly.
 
-To achieve the ability to prove the number of transactions in the Merkle tree,
-we will store it together with a hash in each node (as shown in
-\ref{fig:merkle-tree}). So every transaction disclosure will also verify the size.
+From the description above we can conclude that an educator may have an incentive to lie about the size of the tree. To achieve the ability to prove the number of transactions in the Merkle tree,
+we will store the size of the subtree with the hash in each node (as shown in \ref{fig:merkle-tree}). So every transaction disclosure will also verify the size. Suppose that an Educator published a header hash with a wrong size, then every student which is collecting his own fair CV will see that an Educator deceives him, and moreover not a single data-disclosure deal would proceed.
+
+Let's look at the example from the figure \ref{fig:merkle-tree}. Suppose we need to disclose $data[2]$. The path to the node H is $A \rightarrow B \rightarrow E \rightarrow H$. The proof nodes are $C$, $D$, and $I$. So the size of the tree is $$C.size+D.size+I.size+1=5$$
+
 
 We also consider a possibility for small educators to form pools and release
 blocks together in order to reduce costs for each individual educator. See
